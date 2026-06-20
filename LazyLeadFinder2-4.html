@@ -1,0 +1,4249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lazy Lead Finder 2.0 — ThirdShift Technologies</title>
+<style>
+/* ============================================================
+   DESIGN SYSTEM — LAZY LEAD FINDER 2.0
+   ThirdShift Technologies / QR Buddy
+   ============================================================ */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  /* Colors */
+  --blue:         #0ea5e9;
+  --blue-dark:    #0284c7;
+  --blue-light:   #38bdf8;
+  --bg:           #0a0f1e;
+  --card:         #0f1a2e;
+  --surface:      #162032;
+  --border:       #1e3048;
+  --text:         #f0f6ff;
+  --text-2:       #7fa8c9;
+  --text-muted:   #4a6a85;
+  --success:      #22c55e;
+  --warning:      #f59e0b;
+  --danger:       #ef4444;
+  --demo-banner:  #f59e0b;
+
+  /* Spacing */
+  --sidebar-w:    240px;
+  --gap:          24px;
+  --radius:       10px;
+  --radius-sm:    6px;
+
+  /* Font */
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+          "Helvetica Neue", Arial, sans-serif;
+}
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ============================================================
+   TYPOGRAPHY
+   ============================================================ */
+h1 { font-size: 32px; font-weight: 700; letter-spacing: -0.5px; }
+h2 { font-size: 24px; font-weight: 600; letter-spacing: -0.3px; }
+h3 { font-size: 18px; font-weight: 600; }
+.meta { font-size: 13px; color: var(--text-2); }
+.badge {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
+  text-transform: uppercase; padding: 2px 8px; border-radius: 4px;
+  display: inline-block;
+}
+.badge-mobile  { background: rgba(34,197,94,.15); color: var(--success); }
+.badge-land    { background: rgba(239,68,68,.15);  color: var(--danger); }
+.badge-warn    { background: rgba(245,158,11,.15); color: var(--warning); }
+.badge-gray    { background: rgba(74,106,133,.2);  color: var(--text-muted); }
+.badge-blue    { background: rgba(14,165,233,.15); color: var(--blue); }
+
+/* ============================================================
+   LAYOUT — SIDEBAR + MAIN
+   ============================================================ */
+#app {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* SIDEBAR */
+#sidebar {
+  width: var(--sidebar-w);
+  min-width: var(--sidebar-w);
+  background: var(--card);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  z-index: 100;
+  flex-shrink: 0;
+}
+
+.sidebar-logo {
+  padding: 20px var(--gap);
+  border-bottom: 1px solid var(--border);
+}
+.sidebar-logo .brand {
+  font-size: 11px; font-weight: 700; letter-spacing: 1px;
+  text-transform: uppercase; color: var(--text-muted);
+}
+.sidebar-logo .product {
+  font-size: 16px; font-weight: 700; color: var(--blue);
+  margin-top: 2px; letter-spacing: -0.2px;
+}
+
+.nav-section {
+  padding: 16px 12px 4px;
+}
+.nav-section-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 1.2px;
+  text-transform: uppercase; color: var(--text-muted);
+  padding: 0 8px; margin-bottom: 4px;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 10px; border-radius: var(--radius-sm);
+  cursor: pointer; color: var(--text-2); font-size: 14px;
+  font-weight: 500; transition: background 0.15s, color 0.15s;
+  user-select: none;
+}
+.nav-item:hover { background: var(--surface); color: var(--text); }
+.nav-item.active { background: rgba(14,165,233,.12); color: var(--blue); }
+.nav-item .icon { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; }
+.nav-divider { height: 1px; background: var(--border); margin: 8px 12px; }
+
+.sidebar-user {
+  margin-top: auto;
+  padding: 16px var(--gap);
+  border-top: 1px solid var(--border);
+}
+.user-name { font-size: 13px; font-weight: 600; color: var(--text); }
+.user-role { font-size: 11px; color: var(--text-muted); margin-bottom: 10px; }
+.btn-signout {
+  font-size: 13px; color: var(--text-muted); background: none; border: none;
+  cursor: pointer; padding: 0; display: flex; align-items: center; gap: 6px;
+}
+.btn-signout:hover { color: var(--danger); }
+
+/* MAIN CONTENT AREA */
+#main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+}
+
+/* DEMO BANNER */
+#demo-banner {
+  display: none;
+  background: var(--warning);
+  color: #1a0a00;
+  text-align: center;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  flex-shrink: 0;
+  z-index: 200;
+}
+#demo-banner.active { display: flex; align-items: center; justify-content: center; gap: 12px; }
+#demo-banner button {
+  background: rgba(0,0,0,.15); border: none; border-radius: 4px;
+  color: #1a0a00; font-size: 12px; font-weight: 700; cursor: pointer;
+  padding: 3px 10px;
+}
+#demo-banner button:hover { background: rgba(0,0,0,.25); }
+
+/* PAGE CONTAINER */
+#page {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--gap);
+  padding-bottom: 80px; /* mobile nav clearance */
+}
+
+/* MOBILE BOTTOM NAV */
+#mobile-nav {
+  display: none;
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--card);
+  border-top: 1px solid var(--border);
+  padding: 8px 0 env(safe-area-inset-bottom, 8px);
+  z-index: 300;
+}
+.mobile-nav-items {
+  display: flex; justify-content: space-around;
+}
+.mobile-nav-item {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 6px 12px; cursor: pointer; color: var(--text-muted);
+  font-size: 10px; font-weight: 600; letter-spacing: 0.3px;
+  text-transform: uppercase; border: none; background: none;
+  transition: color 0.15s;
+}
+.mobile-nav-item .mn-icon { font-size: 20px; }
+.mobile-nav-item.active { color: var(--blue); }
+
+/* ============================================================
+   CARDS & SURFACES
+   ============================================================ */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--gap);
+}
+.card-sm { padding: 16px; }
+.surface {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+}
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 10px 20px; border-radius: var(--radius-sm);
+  font-size: 15px; font-weight: 600; font-family: var(--font);
+  cursor: pointer; border: none; transition: opacity 0.15s, transform 0.1s;
+  text-decoration: none; white-space: nowrap;
+}
+.btn:active { transform: scale(0.98); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-primary { background: var(--blue); color: #fff; }
+.btn-primary:hover:not(:disabled) { background: var(--blue-dark); }
+
+.btn-secondary {
+  background: var(--surface); color: var(--text);
+  border: 1px solid var(--border);
+}
+.btn-secondary:hover:not(:disabled) { background: var(--border); }
+
+.btn-danger { background: var(--danger); color: #fff; }
+.btn-danger:hover:not(:disabled) { background: #dc2626; }
+
+.btn-success { background: var(--success); color: #fff; }
+.btn-ghost { background: none; color: var(--text-2); border: 1px solid var(--border); }
+.btn-ghost:hover { color: var(--text); background: var(--surface); }
+
+.btn-full { width: 100%; }
+.btn-sm { padding: 6px 14px; font-size: 13px; }
+.btn-lg { padding: 14px 28px; font-size: 16px; }
+
+/* ============================================================
+   FORM ELEMENTS
+   ============================================================ */
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-label {
+  font-size: 13px; font-weight: 600; color: var(--text-2);
+  display: flex; align-items: center; gap: 6px;
+}
+.form-input, .form-select, .form-textarea {
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--text); border-radius: var(--radius-sm);
+  padding: 10px 14px; font-size: 15px; font-family: var(--font);
+  width: 100%; transition: border-color 0.15s;
+  appearance: none; -webkit-appearance: none;
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+  outline: none; border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(14,165,233,.12);
+}
+.form-input::placeholder { color: var(--text-muted); }
+.form-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%234a6a85' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+}
+.form-textarea { resize: vertical; min-height: 80px; }
+
+.checkbox-row {
+  display: flex; align-items: center; gap: 10px;
+  cursor: pointer; padding: 6px 0;
+}
+.checkbox-row input[type="checkbox"] {
+  width: 18px; height: 18px; accent-color: var(--blue); cursor: pointer;
+}
+.checkbox-row label { cursor: pointer; font-size: 14px; color: var(--text); }
+
+/* ============================================================
+   STATS BLOCKS
+   ============================================================ */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: var(--gap);
+}
+.stat-block {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  position: relative;
+}
+.stat-label { font-size: 12px; font-weight: 600; letter-spacing: 0.5px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; }
+.stat-value { font-size: 32px; font-weight: 700; color: var(--text); letter-spacing: -1px; }
+.stat-sub { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+.stat-info {
+  position: absolute; top: 16px; right: 16px;
+  color: var(--text-muted); cursor: pointer; font-size: 14px;
+}
+
+/* ============================================================
+   DATA TABLE
+   ============================================================ */
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table th {
+  text-align: left; font-size: 11px; font-weight: 700; letter-spacing: 0.8px;
+  text-transform: uppercase; color: var(--text-muted);
+  padding: 10px 14px; border-bottom: 1px solid var(--border);
+}
+.data-table td {
+  padding: 12px 14px; border-bottom: 1px solid rgba(30,48,72,.5);
+  font-size: 14px; color: var(--text);
+}
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: rgba(14,165,233,.04); }
+.data-table td.muted { color: var(--text-2); }
+
+/* ============================================================
+   PROGRESS BAR
+   ============================================================ */
+.progress-wrap { background: var(--surface); border-radius: 100px; height: 8px; overflow: hidden; }
+.progress-bar {
+  height: 100%; border-radius: 100px;
+  background: linear-gradient(90deg, var(--blue-dark), var(--blue));
+  transition: width 0.4s ease;
+}
+
+/* ============================================================
+   TOAST NOTIFICATIONS
+   ============================================================ */
+#toast-container {
+  position: fixed; bottom: 80px; right: var(--gap);
+  display: flex; flex-direction: column; gap: 8px;
+  z-index: 1000; pointer-events: none;
+}
+.toast {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 14px 18px;
+  font-size: 14px; color: var(--text);
+  box-shadow: 0 4px 24px rgba(0,0,0,.4);
+  display: flex; align-items: center; gap: 10px;
+  min-width: 280px; max-width: 360px;
+  animation: toast-in 0.3s ease;
+  pointer-events: auto;
+}
+.toast.success { border-left: 3px solid var(--success); }
+.toast.error   { border-left: 3px solid var(--danger); }
+.toast.warn    { border-left: 3px solid var(--warning); }
+@keyframes toast-in {
+  from { opacity: 0; transform: translateX(20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ============================================================
+   TOOLTIP
+   ============================================================ */
+.info-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: rgba(127,168,201,.15); color: var(--text-2);
+  font-size: 11px; font-weight: 700; cursor: pointer;
+  position: relative; flex-shrink: 0;
+  border: 1px solid rgba(127,168,201,.2);
+}
+.info-icon::after {
+  content: attr(data-tip);
+  position: absolute; bottom: calc(100% + 8px); left: 50%;
+  transform: translateX(-50%);
+  background: #1c2e44; border: 1px solid var(--border);
+  color: var(--text); font-size: 12px; font-weight: 400;
+  padding: 8px 12px; border-radius: var(--radius-sm);
+  white-space: normal; width: 220px; z-index: 500;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.15s;
+  line-height: 1.5;
+  box-shadow: 0 4px 16px rgba(0,0,0,.4);
+}
+.info-icon:hover::after { opacity: 1; }
+
+/* ============================================================
+   SECTION PAGES — Shared header
+   ============================================================ */
+.page-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  margin-bottom: var(--gap); gap: 16px;
+}
+.page-header-left h2 { margin-bottom: 4px; }
+.page-header-left p { color: var(--text-2); font-size: 14px; }
+.page-header-actions { display: flex; gap: 10px; flex-shrink: 0; }
+
+/* Grid helpers */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+.flex-row { display: flex; align-items: center; gap: 12px; }
+.flex-col { display: flex; flex-direction: column; gap: 12px; }
+.gap-8  { gap: 8px; }
+.gap-16 { gap: 16px; }
+.gap-24 { gap: 24px; }
+
+/* Filter bar */
+.filter-bar {
+  display: flex; gap: 10px; flex-wrap: wrap;
+  margin-bottom: var(--gap); align-items: center;
+}
+.filter-bar .form-select { width: auto; min-width: 140px; }
+
+/* Quick actions */
+.quick-actions {
+  display: flex; gap: 10px; flex-wrap: wrap;
+  margin-bottom: var(--gap);
+}
+
+/* Empty state */
+.empty-state {
+  text-align: center; padding: 60px var(--gap);
+  color: var(--text-muted);
+}
+.empty-state .empty-icon { font-size: 48px; margin-bottom: 16px; }
+.empty-state h3 { color: var(--text-2); margin-bottom: 8px; }
+.empty-state p { font-size: 14px; max-width: 360px; margin: 0 auto 20px; line-height: 1.7; }
+
+/* Loading spinner */
+.spinner {
+  width: 20px; height: 20px;
+  border: 2px solid var(--border);
+  border-top-color: var(--blue);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+.spinner-lg { width: 36px; height: 36px; border-width: 3px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Loading overlay */
+.loading-center {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 16px; padding: 60px;
+  color: var(--text-2); font-size: 14px;
+}
+
+/* ============================================================
+   SECTION: DASHBOARD
+   ============================================================ */
+.vertical-table { width: 100%; }
+.vt-actions { display: flex; gap: 6px; }
+
+/* ============================================================
+   SECTION: IMPORT
+   ============================================================ */
+.drop-zone {
+  border: 2px dashed var(--border); border-radius: var(--radius);
+  padding: 60px var(--gap); text-align: center; cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  background: rgba(14,165,233,.02);
+}
+.drop-zone:hover, .drop-zone.drag-over {
+  border-color: var(--blue); background: rgba(14,165,233,.06);
+}
+.drop-zone .dz-icon { font-size: 48px; margin-bottom: 16px; }
+.drop-zone h3 { color: var(--text); margin-bottom: 6px; }
+.drop-zone p { color: var(--text-muted); font-size: 13px; }
+#file-input { display: none; }
+
+/* Column mapping table */
+.map-table { width: 100%; border-collapse: collapse; }
+.map-table th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); padding: 8px 12px; border-bottom: 1px solid var(--border); text-align: left; }
+.map-table td { padding: 10px 12px; border-bottom: 1px solid rgba(30,48,72,.4); font-size: 14px; vertical-align: middle; }
+.map-table tr:last-child td { border-bottom: none; }
+.map-ok   { color: var(--success); font-size: 16px; }
+.map-warn { color: var(--warning); font-size: 16px; }
+
+/* Import summary */
+.import-summary .row {
+  display: flex; justify-content: space-between;
+  padding: 10px 0; border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+.import-summary .row:last-child { border-bottom: none; }
+.import-summary .row span:last-child { font-weight: 600; color: var(--text); }
+
+/* ============================================================
+   DATABASE STATUS BAR (Scrub + Export pages)
+   ============================================================ */
+.db-status-bar {
+  display: flex; align-items: center;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 20px var(--gap);
+  flex-wrap: wrap; gap: 0;
+}
+.db-stat { text-align: center; flex: 1; min-width: 120px; }
+.db-stat-val { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; line-height: 1.2; }
+.db-stat-lbl { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-top: 4px; }
+.db-stat-divider { width: 1px; background: var(--border); align-self: stretch; margin: 0 8px; flex-shrink: 0; }
+
+@media (max-width: 600px) {
+  .db-status-bar { gap: 16px; }
+  .db-stat-divider { display: none; }
+  .db-stat { min-width: calc(50% - 16px); }
+  .db-stat-val { font-size: 22px; }
+}
+
+/* Export pool status */
+.pool-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+.pool-row:last-child { border-bottom: none; }
+
+/* ============================================================
+   SECTION: SCRUB & VERIFY
+   ============================================================ */
+.scrub-progress-stats {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;
+  margin: var(--gap) 0;
+}
+.sps-item {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 14px 16px;
+  display: flex; align-items: center; gap: 12px;
+}
+.sps-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.sps-label { font-size: 12px; color: var(--text-muted); }
+.sps-value { font-size: 22px; font-weight: 700; }
+
+/* ============================================================
+   SECTION: EXPORT
+   ============================================================ */
+.export-preview {
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 16px;
+  font-family: "SF Mono", "Fira Code", monospace;
+  font-size: 12px; color: var(--text-2); overflow-x: auto;
+}
+
+/* ============================================================
+   SECTION: CLAUDE AI
+   ============================================================ */
+.claude-chat {
+  display: flex; flex-direction: column;
+  height: calc(100vh - 200px);
+}
+.chat-messages {
+  flex: 1; overflow-y: auto; padding: 16px;
+  display: flex; flex-direction: column; gap: 16px;
+}
+.chat-msg {
+  display: flex; gap: 12px; align-items: flex-start;
+}
+.chat-msg.user { flex-direction: row-reverse; }
+.chat-avatar {
+  width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 700;
+}
+.chat-avatar.ai  { background: rgba(14,165,233,.15); color: var(--blue); }
+.chat-avatar.you { background: rgba(34,197,94,.15);  color: var(--success); }
+.chat-bubble {
+  max-width: 75%; background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 12px 16px;
+  font-size: 14px; line-height: 1.7; color: var(--text);
+}
+.chat-msg.user .chat-bubble { background: rgba(14,165,233,.1); border-color: rgba(14,165,233,.2); }
+.chat-input-row {
+  display: flex; gap: 10px; padding: 16px;
+  border-top: 1px solid var(--border);
+}
+.chat-input-row .form-input { flex: 1; }
+
+/* Floating Claude button */
+#claude-fab {
+  position: fixed; bottom: 80px; right: var(--gap);
+  width: 52px; height: 52px; border-radius: 50%;
+  background: var(--blue); border: none; cursor: pointer;
+  font-size: 22px; color: #fff;
+  box-shadow: 0 4px 20px rgba(14,165,233,.4);
+  display: flex; align-items: center; justify-content: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+  z-index: 250;
+}
+#claude-fab:hover { transform: scale(1.08); box-shadow: 0 6px 28px rgba(14,165,233,.5); }
+
+/* Claude slide-up panel */
+#claude-panel {
+  position: fixed; right: var(--gap); bottom: 148px;
+  width: 360px; background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); overflow: hidden;
+  box-shadow: 0 8px 40px rgba(0,0,0,.5);
+  z-index: 240; display: none;
+}
+#claude-panel.open { display: flex; flex-direction: column; }
+.cp-header {
+  padding: 14px 16px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--surface);
+}
+.cp-header h3 { font-size: 14px; color: var(--blue); }
+.cp-close { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 18px; }
+.cp-messages { height: 220px; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+.cp-input-row { display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--border); }
+
+/* ============================================================
+   SECTION: SEARCH (Lead Finder)
+   ============================================================ */
+.vertical-checkboxes {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;
+}
+.vc-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 10px; border-radius: var(--radius-sm);
+  cursor: pointer; transition: background 0.12s;
+}
+.vc-item:hover { background: var(--surface); }
+.vc-item input { accent-color: var(--blue); cursor: pointer; }
+.vc-item label { font-size: 13px; cursor: pointer; }
+
+/* Source tiles */
+.source-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.source-tile {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 14px 16px;
+  cursor: pointer; transition: border-color 0.15s, background 0.15s;
+  display: flex; gap: 12px; align-items: flex-start;
+}
+.source-tile:hover { border-color: var(--blue-dark); }
+.source-tile.selected { border-color: var(--blue); background: rgba(14,165,233,.06); }
+.source-tile input { accent-color: var(--blue); margin-top: 2px; flex-shrink: 0; }
+.st-name { font-size: 14px; font-weight: 600; color: var(--text); }
+.st-desc { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+/* ============================================================
+   SECTION: STAGING AREA
+   ============================================================ */
+.staging-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 0; border-bottom: 1px solid rgba(30,48,72,.5);
+}
+.staging-row:last-child { border-bottom: none; }
+.staging-row input[type="checkbox"] { accent-color: var(--blue); width: 16px; height: 16px; flex-shrink: 0; }
+.sr-info { flex: 1; min-width: 0; }
+.sr-biz { font-size: 14px; font-weight: 600; }
+.sr-meta { font-size: 12px; color: var(--text-2); margin-top: 2px; }
+
+/* ============================================================
+   LOGIN SCREEN
+   ============================================================ */
+#login-screen {
+  position: fixed; inset: 0; background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 500;
+}
+.login-box {
+  width: 100%; max-width: 400px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 40px;
+  text-align: center;
+}
+.login-brand { font-size: 13px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
+.login-product { font-size: 26px; font-weight: 700; color: var(--blue); letter-spacing: -0.5px; margin-bottom: 32px; }
+.login-divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; }
+.login-divider span { font-size: 12px; color: var(--text-muted); }
+.login-divider::before, .login-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.google-btn {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--text); border-radius: var(--radius-sm);
+  padding: 12px; cursor: pointer; width: 100%;
+  font-size: 15px; font-weight: 600; font-family: var(--font);
+  transition: background 0.15s; margin-bottom: 10px;
+}
+.google-btn:hover { background: var(--border); }
+.login-error { color: var(--danger); font-size: 13px; margin-top: 12px; }
+
+/* ============================================================
+   SETTINGS SCREEN
+   ============================================================ */
+.settings-section { margin-bottom: 28px; }
+.settings-section-title {
+  font-size: 11px; font-weight: 700; letter-spacing: 1.2px;
+  text-transform: uppercase; color: var(--text-muted);
+  margin-bottom: 12px; padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.api-row {
+  display: flex; gap: 10px; align-items: flex-end;
+  margin-bottom: 12px;
+}
+.api-row .form-group { flex: 1; }
+.api-test-btn {
+  flex-shrink: 0; padding: 10px 14px; font-size: 13px;
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--text-2); border-radius: var(--radius-sm);
+  cursor: pointer; white-space: nowrap; font-family: var(--font);
+  transition: background 0.15s;
+}
+.api-test-btn:hover { background: var(--border); color: var(--text); }
+.api-test-btn.ok   { border-color: var(--success); color: var(--success); }
+.api-test-btn.fail { border-color: var(--danger);  color: var(--danger); }
+
+/* Demo mode toggle */
+.toggle-wrap {
+  display: flex; align-items: center; gap: 14px;
+}
+.toggle {
+  position: relative; width: 48px; height: 26px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 100px; cursor: pointer; transition: background 0.2s;
+}
+.toggle.on { background: var(--blue); border-color: var(--blue); }
+.toggle::after {
+  content: ''; position: absolute;
+  top: 3px; left: 3px;
+  width: 18px; height: 18px; background: #fff;
+  border-radius: 50%; transition: transform 0.2s;
+  box-shadow: 0 1px 4px rgba(0,0,0,.2);
+}
+.toggle.on::after { transform: translateX(22px); }
+
+/* System info table */
+.sys-table { width: 100%; font-size: 14px; }
+.sys-table tr td { padding: 8px 0; border-bottom: 1px solid rgba(30,48,72,.4); }
+.sys-table tr:last-child td { border-bottom: none; }
+.sys-table td:last-child { color: var(--text); font-weight: 500; text-align: right; }
+.sys-table td:first-child { color: var(--text-2); }
+
+/* User rows in settings */
+.user-list-row {
+  display: flex; align-items: center; gap: 16px;
+  padding: 12px 0; border-bottom: 1px solid rgba(30,48,72,.4);
+}
+.user-list-row:last-child { border-bottom: none; }
+.ul-name { font-size: 14px; font-weight: 600; flex: 1; }
+.ul-role .badge { }
+.ul-email { font-size: 13px; color: var(--text-2); flex: 1; }
+
+/* ============================================================
+   REPORTS
+   ============================================================ */
+.report-tabs {
+  display: flex; gap: 0; border-bottom: 1px solid var(--border);
+  margin-bottom: var(--gap);
+}
+.report-tab {
+  padding: 10px 20px; font-size: 14px; font-weight: 500;
+  color: var(--text-muted); cursor: pointer; border: none;
+  background: none; border-bottom: 2px solid transparent;
+  margin-bottom: -1px; font-family: var(--font);
+  transition: color 0.15s;
+}
+.report-tab:hover { color: var(--text); }
+.report-tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+
+/* ============================================================
+   RESPONSIVE — MOBILE
+   ============================================================ */
+@media (max-width: 768px) {
+  #sidebar { display: none; }
+  #mobile-nav { display: block; }
+  #claude-fab { bottom: 90px; }
+  #claude-panel { right: 12px; left: 12px; width: auto; bottom: 160px; }
+  #toast-container { bottom: 90px; right: 12px; left: 12px; }
+  .toast { min-width: unset; max-width: unset; }
+  #page { padding: 16px; padding-bottom: 100px; }
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+  .grid-2 { grid-template-columns: 1fr; }
+  .grid-3 { grid-template-columns: 1fr; }
+  .vertical-checkboxes { grid-template-columns: 1fr 1fr; }
+  .source-tiles { grid-template-columns: 1fr; }
+  .page-header { flex-direction: column; }
+  .page-header-actions { width: 100%; }
+  .filter-bar { gap: 8px; }
+  .filter-bar .form-select { flex: 1; min-width: 120px; }
+  .scrub-progress-stats { grid-template-columns: 1fr 1fr; }
+  h1 { font-size: 24px; }
+  h2 { font-size: 20px; }
+  .stat-value { font-size: 26px; }
+  .claude-chat { height: calc(100vh - 160px); }
+}
+
+@media (max-width: 480px) {
+  .stats-grid { grid-template-columns: 1fr; }
+  .vertical-checkboxes { grid-template-columns: 1fr; }
+  .scrub-progress-stats { grid-template-columns: 1fr; }
+  .vt-actions { flex-direction: column; }
+}
+
+/* ============================================================
+   AI STAR ICON
+   ============================================================ */
+.star-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.star-icon svg { display: block; }
+
+/* FAB uses star */
+#claude-fab { font-size: 0; } /* hide any text fallback */
+
+/* Nav star sizing */
+.nav-item .star-icon svg  { width: 18px; height: 18px; }
+.mn-icon .star-icon svg   { width: 22px; height: 22px; }
+
+/* Chat avatar star */
+.chat-avatar.ai {
+  background: rgba(14,165,233,.12);
+  border: 1px solid rgba(14,165,233,.2);
+}
+
+/* ============================================================
+   LEAD DRILL-DOWN PANEL
+   ============================================================ */
+#lead-drilldown {
+  display: none;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: var(--gap);
+  overflow: hidden;
+}
+#lead-drilldown.open { display: block; }
+.drill-header {
+  display: flex; align-items: center; gap: 12px;
+  padding: 16px var(--gap);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.drill-header h3 { flex: 1; font-size: 16px; }
+.drill-close {
+  background: none; border: none; color: var(--text-muted);
+  font-size: 18px; cursor: pointer; padding: 0 4px;
+}
+.drill-close:hover { color: var(--danger); }
+.drill-toolbar {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px var(--gap); border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.drill-count { font-size: 13px; color: var(--text-muted); margin-left: auto; }
+#drill-table-wrap { overflow-x: auto; max-height: 480px; overflow-y: auto; }
+.drill-table { width: 100%; border-collapse: collapse; min-width: 700px; }
+.drill-table th {
+  text-align: left; font-size: 11px; font-weight: 700;
+  letter-spacing: 0.8px; text-transform: uppercase;
+  color: var(--text-muted); padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; background: var(--card);
+  cursor: pointer; white-space: nowrap;
+}
+.drill-table th:hover { color: var(--blue); }
+.drill-table th .sort-arrow { margin-left: 4px; opacity: 0.4; }
+.drill-table th.sorted .sort-arrow { opacity: 1; color: var(--blue); }
+.drill-table td {
+  padding: 10px 14px; border-bottom: 1px solid rgba(30,48,72,.4);
+  font-size: 13px; color: var(--text); white-space: nowrap;
+}
+.drill-table tr:last-child td { border-bottom: none; }
+.drill-table tr:hover td { background: rgba(14,165,233,.04); }
+.drill-footer {
+  padding: 12px var(--gap);
+  border-top: 1px solid var(--border);
+  display: flex; align-items: center; gap: 10px;
+  flex-wrap: wrap;
+}
+/* Clickable stat cards */
+.stat-block {
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.1s;
+}
+.stat-block:hover {
+  border-color: var(--blue);
+  transform: translateY(-1px);
+}
+.stat-block.active { border-color: var(--blue); background: rgba(14,165,233,.06); }
+.stat-block .stat-label { transition: color 0.15s; }
+.stat-block:hover .stat-label { color: var(--blue); }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* ============================================================
+   UTILITY
+   ============================================================ */
+.hidden   { display: none !important; }
+.text-2   { color: var(--text-2); }
+.text-muted { color: var(--text-muted); }
+.text-success { color: var(--success); }
+.text-danger  { color: var(--danger); }
+.text-warn    { color: var(--warning); }
+.text-blue    { color: var(--blue); }
+.fw-600   { font-weight: 600; }
+.fw-700   { font-weight: 700; }
+.fs-12    { font-size: 12px; }
+.fs-13    { font-size: 13px; }
+.fs-14    { font-size: 14px; }
+.mt-8     { margin-top: 8px; }
+.mt-16    { margin-top: 16px; }
+.mt-24    { margin-top: 24px; }
+.mb-8     { margin-bottom: 8px; }
+.mb-16    { margin-bottom: 16px; }
+.mb-24    { margin-bottom: 24px; }
+.no-wrap  { white-space: nowrap; }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     LOGIN SCREEN
+     ============================================================ -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-brand">ThirdShift Technologies</div>
+    <div class="login-product">Lazy Lead Finder 2.0</div>
+
+    <button class="google-btn" id="btn-google-login" onclick="handleGoogleLogin()">
+      <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+        <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/>
+        <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/>
+        <path fill="#FBBC05" d="M3.964 10.71c-.18-.54-.282-1.117-.282-1.71s.102-1.17.282-1.71V4.958H.957C.347 6.173 0 7.548 0 9s.348 2.827.957 4.042l3.007-2.332z"/>
+        <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/>
+      </svg>
+      Sign in with Google
+    </button>
+
+    <div class="login-divider"><span>or</span></div>
+
+    <div class="form-group mb-16">
+      <input type="email" id="login-email" class="form-input" placeholder="Email address">
+    </div>
+    <div class="form-group mb-16">
+      <input type="password" id="login-password" class="form-input" placeholder="Password">
+    </div>
+    <button class="btn btn-primary btn-full" onclick="handleEmailLogin()">Sign In</button>
+    <div class="login-error hidden" id="login-error"></div>
+  </div>
+</div>
+
+<!-- ============================================================
+     MAIN APP
+     ============================================================ -->
+<div id="app" class="hidden">
+
+  <!-- DEMO MODE BANNER -->
+  <div id="demo-banner">
+    ⚠️ DEMO MODE ACTIVE — All data is simulated
+    <button onclick="exitDemoMode()">Exit Demo Mode</button>
+  </div>
+
+  <!-- SIDEBAR -->
+  <nav id="sidebar">
+    <div class="sidebar-logo">
+      <div class="brand">ThirdShift Technologies</div>
+      <div class="product">Lazy Lead Finder 2.0</div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-section-label">Lead Bank</div>
+      <div class="nav-item active" data-page="dashboard" onclick="navigate('dashboard', this)">
+        <span class="icon">📊</span> Dashboard
+      </div>
+      <div class="nav-item" data-page="import" onclick="navigate('import', this)">
+        <span class="icon">📥</span> Import CSV
+      </div>
+      <div class="nav-item" data-page="scrub" onclick="navigate('scrub', this)">
+        <span class="icon">🔍</span> Scrub &amp; Verify
+      </div>
+      <div class="nav-item" data-page="export" onclick="navigate('export', this)">
+        <span class="icon">📤</span> Export
+      </div>
+    </div>
+
+    <div class="nav-divider"></div>
+
+    <div class="nav-section">
+      <div class="nav-section-label">Lead Finder</div>
+      <div class="nav-item" data-page="search" onclick="navigate('search', this)">
+        <span class="icon">🌐</span> Search
+      </div>
+      <div class="nav-item" data-page="associations" onclick="navigate('associations', this)">
+        <span class="icon">🏢</span> Associations
+      </div>
+      <div class="nav-item" data-page="networking" onclick="navigate('networking', this)">
+        <span class="icon">🤝</span> Networking Groups
+      </div>
+      <div class="nav-item" data-page="staging" onclick="navigate('staging', this)">
+        <span class="icon">📋</span> Staging Area
+        <span class="badge badge-blue" id="staging-badge" style="margin-left:auto;display:none">0</span>
+      </div>
+    </div>
+
+    <div class="nav-divider"></div>
+
+    <div class="nav-section">
+      <div class="nav-section-label">Tools</div>
+      <div class="nav-item" data-page="claude" onclick="navigate('claude', this)">
+        <span class="icon star-icon" id="nav-star-claude"></span> Ask Claude
+      </div>
+      <div class="nav-item" data-page="reports" onclick="navigate('reports', this)">
+        <span class="icon">📈</span> Reports
+      </div>
+    </div>
+
+    <div class="nav-divider"></div>
+
+    <div class="nav-section">
+      <div class="nav-section-label">Settings</div>
+      <div class="nav-item" data-page="settings" onclick="navigate('settings', this)">
+        <span class="icon">⚙️</span> Settings
+      </div>
+    </div>
+
+    <div class="sidebar-user">
+      <div class="user-name" id="sidebar-username">—</div>
+      <div class="user-role" id="sidebar-role">—</div>
+      <button class="btn-signout" onclick="handleSignOut()">🚪 Sign Out</button>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <div id="main">
+    <!-- Demo banner goes here in DOM flow via flexbox column -->
+    <div id="page">
+
+      <!-- ======= DASHBOARD ======= -->
+      <section id="page-dashboard" class="page-section">
+        <div class="page-header">
+          <div class="page-header-left">
+            <h2>Dashboard</h2>
+            <p>Your lead database at a glance</p>
+          </div>
+          <div class="page-header-actions">
+            <button class="btn btn-secondary btn-sm" onclick="loadDashboard()">↻ Refresh</button>
+          </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid" id="stats-grid">
+          <div class="stat-block" onclick="openDrillDown('all')" title="Click to view all leads">
+            <div class="stat-label">Total Leads</div>
+            <div class="stat-value" id="stat-total">—</div>
+            <div class="stat-sub">All sources — click to view</div>
+          </div>
+          <div class="stat-block" onclick="openDrillDown('scrubbed')" title="Click to view scrubbed leads">
+            <div class="stat-label">Scrubbed</div>
+            <div class="stat-value" id="stat-scrubbed">—</div>
+            <div class="stat-sub">NumVerified — click to view</div>
+          </div>
+          <div class="stat-block" onclick="openDrillDown('mobile')" title="Click to view mobile confirmed">
+            <div class="stat-label">Mobile ✓</div>
+            <div class="stat-value" id="stat-mobile">—</div>
+            <div class="stat-sub">Confirmed — click to view</div>
+          </div>
+          <div class="stat-block" onclick="openDrillDown('mobile')" title="Click to view mobile confirmed">
+            <div class="info-icon" data-tip="Percentage of SCRUBBED records confirmed mobile — not a % of total leads.">i</div>
+            <div class="stat-label">Mobile Rate</div>
+            <div class="stat-value" id="stat-mobile-rate">—</div>
+            <div class="stat-sub">Of scrubbed — click to view</div>
+          </div>
+        </div>
+
+        <!-- LEAD DRILL-DOWN PANEL — appears below stats when a card is clicked -->
+        <div id="lead-drilldown">
+          <div class="drill-header">
+            <h3 id="drill-title">Leads</h3>
+            <button class="btn btn-primary btn-sm" onclick="exportDrillDown()">📤 Export These</button>
+            <button class="drill-close" onclick="closeDrillDown()" title="Close">✕</button>
+          </div>
+          <div class="drill-toolbar">
+            <input type="text" class="form-input" id="drill-search"
+              placeholder="Search by name, phone, city…"
+              oninput="filterDrillTable()"
+              style="max-width:260px;padding:7px 12px;font-size:13px">
+            <select class="form-select" id="drill-filter-state" onchange="filterDrillTable()" style="width:auto;min-width:130px">
+              <option value="">All States</option>
+            </select>
+            <select class="form-select" id="drill-filter-vertical" onchange="filterDrillTable()" style="width:auto;min-width:150px">
+              <option value="">All Verticals</option>
+            </select>
+            <span class="drill-count" id="drill-count">— records</span>
+          </div>
+          <div id="drill-table-wrap">
+            <div class="loading-center"><div class="spinner"></div><span>Loading…</span></div>
+          </div>
+          <div class="drill-footer">
+            <span class="text-muted fs-13" id="drill-footer-count"></span>
+            <button class="btn btn-primary btn-sm" onclick="exportDrillDown()">📤 Export to CSV</button>
+            <button class="btn btn-secondary btn-sm" onclick="navigate('scrub')">🔍 Scrub These</button>
+          </div>
+        </div>
+
+        <!-- Geography Filters -->
+        <div class="filter-bar" id="dash-filters">
+          <select class="form-select" id="dash-filter-state" onchange="applyDashFilters()">
+            <option value="">All States</option>
+          </select>
+          <select class="form-select" id="dash-filter-county" onchange="applyDashFilters()">
+            <option value="">All Counties</option>
+          </select>
+          <select class="form-select" id="dash-filter-city" onchange="applyDashFilters()">
+            <option value="">All Cities</option>
+          </select>
+          <select class="form-select" id="dash-filter-vertical" onchange="applyDashFilters()">
+            <option value="">All Verticals</option>
+          </select>
+          <button class="btn btn-ghost btn-sm" onclick="resetDashFilters()">Reset Filters</button>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+          <button class="btn btn-primary btn-sm" onclick="navigate('import')">📥 Import CSV</button>
+          <button class="btn btn-secondary btn-sm" onclick="navigate('scrub')">🔍 Scrub Records</button>
+          <button class="btn btn-secondary btn-sm" onclick="navigate('export')">📤 Export Leads</button>
+          <button class="btn btn-secondary btn-sm" onclick="navigate('claude')">✦ Ask Claude</button>
+        </div>
+
+        <!-- Vertical Intelligence Panel -->
+        <div class="card">
+          <div class="flex-row mb-16">
+            <h3 style="flex:1">Vertical Intelligence</h3>
+            <span class="info-icon" data-tip="Ranked by mobile confirmation rate from scrubbed records only. Verticals with no scrubbed data show — and rank last.">i</span>
+          </div>
+          <p class="text-muted fs-13 mb-16">Ranked by mobile confirmation rate (scrubbed records only)</p>
+          <div id="vertical-table-wrap">
+            <div class="loading-center"><div class="spinner"></div><span>Loading vertical data…</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======= IMPORT CSV ======= -->
+      <section id="page-import" class="page-section hidden">
+        <div class="page-header">
+          <div class="page-header-left">
+            <h2>📥 Import Leads</h2>
+            <p>Import a CSV file to add leads to your database. NumVerify runs separately — on demand only.</p>
+          </div>
+        </div>
+
+        <!-- Step 1: Drop zone -->
+        <div id="import-step-1">
+          <div class="drop-zone card" id="drop-zone" onclick="document.getElementById('file-input').click()"
+               ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+            <div class="dz-icon">📂</div>
+            <h3>Drop your CSV file here</h3>
+            <p>or tap to browse — .csv files only, max 50MB</p>
+          </div>
+          <input type="file" id="file-input" accept=".csv" onchange="handleFileSelect(event)">
+        </div>
+
+        <!-- Step 2: Column mapping -->
+        <div id="import-step-2" class="hidden">
+          <div class="card mb-16">
+            <h3 class="mb-16">Column Mapping</h3>
+            <table class="map-table" id="map-table"></table>
+          </div>
+          <div class="card mb-16">
+            <div class="form-group mb-16">
+              <label class="form-label">Bulk Vertical Assignment <span class="info-icon" data-tip="Assign all records in this import to a single vertical, or leave for per-record assignment.">i</span></label>
+              <select class="form-select" id="bulk-vertical" style="max-width:320px"></select>
+            </div>
+            <div class="form-group mb-16">
+              <label class="form-label">Source Tag</label>
+              <input type="text" class="form-input" id="import-source" placeholder="e.g. AtoZ Databases" style="max-width:320px">
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="previewImport()">Preview Import →</button>
+          <button class="btn btn-ghost" onclick="resetImport()" style="margin-left:10px">← Start Over</button>
+        </div>
+
+        <!-- Step 3: Summary confirmation -->
+        <div id="import-step-3" class="hidden">
+          <div class="card mb-16">
+            <h3 class="mb-16">Ready to Import</h3>
+            <div class="import-summary" id="import-summary"></div>
+          </div>
+          <div class="flex-row">
+            <button class="btn btn-primary" id="confirm-import-btn" onclick="confirmImport()">✓ Import Records</button>
+            <button class="btn btn-ghost" onclick="goToImportStep(2)">← Back</button>
+          </div>
+        </div>
+
+        <!-- Step 4: Progress -->
+        <div id="import-step-4" class="hidden">
+          <div class="card">
+            <h3 class="mb-16">Importing…</h3>
+            <div class="progress-wrap mb-16"><div class="progress-bar" id="import-progress" style="width:0%"></div></div>
+            <p class="text-muted fs-13" id="import-progress-label">Preparing…</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======= SCRUB & VERIFY ======= -->
+      <section id="page-scrub" class="page-section hidden">
+        <div class="page-header">
+          <div class="page-header-left">
+            <h2>🔍 Scrub &amp; Verify</h2>
+            <p>Run phone validation on unverified leads. You control exactly how many and when. Credits only spent on records you choose.</p>
+          </div>
+        </div>
+
+        <!-- Central DB status bar -->
+        <div class="db-status-bar mb-24" id="scrub-db-status">
+          <div class="db-stat"><div class="db-stat-val" id="scrub-db-total">—</div><div class="db-stat-lbl">Total in Database</div></div>
+          <div class="db-stat-divider"></div>
+          <div class="db-stat"><div class="db-stat-val text-warn" id="scrub-db-unverified">—</div><div class="db-stat-lbl">Never Scrubbed</div></div>
+          <div class="db-stat-divider"></div>
+          <div class="db-stat"><div class="db-stat-val" id="scrub-db-scrubbed">—</div><div class="db-stat-lbl">Scrubbed</div></div>
+          <div class="db-stat-divider"></div>
+          <div class="db-stat"><div class="db-stat-val text-success" id="scrub-db-mobile">—</div><div class="db-stat-lbl">Mobile Confirmed 🟢</div></div>
+          <div class="db-stat-divider"></div>
+          <div class="db-stat"><div class="db-stat-val text-danger" id="scrub-db-land">—</div><div class="db-stat-lbl">Landline 🔴</div></div>
+        </div>
+
+        <!-- Scrub setup -->
+        <div id="scrub-step-1">
+          <div class="card mb-16">
+            <h3 class="mb-16">How many do you want to scrub?
+              <span class="info-icon" data-tip="Enter how many MOBILE numbers you want confirmed. System scrubs in batches until it finds your target. You only pay for records actually scrubbed — not your whole database.">i</span>
+            </h3>
+            <div class="grid-2 gap-16 mb-16">
+              <div class="form-group">
+                <label class="form-label">Target mobile numbers to find</label>
+                <input type="number" class="form-input" id="scrub-target" value="300" min="1" oninput="updateScrubEstimate()">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Vertical</label>
+                <select class="form-select" id="scrub-vertical" onchange="loadScrubAvailability()"></select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">State</label>
+                <select class="form-select" id="scrub-state" onchange="loadScrubAvailability()">
+                  <option value="">All States</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">County <span class="text-muted">(optional)</span></label>
+                <select class="form-select" id="scrub-county" onchange="loadScrubAvailability()"><option value="">All Counties</option></select>
+              </div>
+            </div>
+            <div class="surface mb-16" id="scrub-availability">
+              <div class="loading-center" style="padding:20px"><div class="spinner"></div></div>
+            </div>
+            <div class="surface mb-16" id="scrub-estimate" style="display:none">
+              <div class="flex-row" style="flex-wrap:wrap;gap:20px">
+                <div><div class="text-muted fs-12">Est. records to scrub</div><div class="fs-14 fw-600 text-warn" id="est-records">—</div></div>
+                <div><div class="text-muted fs-12">Est. cost at $0.01/call</div><div class="fs-14 fw-600" id="est-cost">—</div></div>
+                <div><div class="text-muted fs-12">Batch size</div><div class="fs-14 fw-600" id="est-batch">100 records</div></div>
+              </div>
+            </div>
+            <button class="btn btn-primary" onclick="previewScrub()">Preview Scrub →</button>
+          </div>
+        </div>
+
+        <!-- Scrub confirmation -->
+        <div id="scrub-step-2" class="hidden">
+          <div class="card mb-16">
+            <h3 class="mb-16">Confirm Scrub</h3>
+            <div class="import-summary" id="scrub-summary"></div>
+            <p class="text-muted fs-13 mt-16">Records already verified will <strong>not</strong> be re-scrubbed. All results — including landlines — are stored permanently.</p>
+          </div>
+          <div class="flex-row">
+            <button class="btn btn-primary" onclick="startScrub()">✓ Start Scrubbing</button>
+            <button class="btn btn-ghost" onclick="goToScrubStep(1)">← Back</button>
+          </div>
+        </div>
+
+        <!-- Scrub progress -->
+        <div id="scrub-step-3" class="hidden">
+          <div class="card mb-16">
+            <h3 class="mb-16">Scrubbing in Progress…</h3>
+            <p class="text-muted fs-13 mb-16" id="scrub-progress-label">Initializing…</p>
+            <div class="progress-wrap mb-8"><div class="progress-bar" id="scrub-progress-bar" style="width:0%"></div></div>
+            <p class="text-muted fs-12 mb-16" id="scrub-target-label">Target: 0 mobile found</p>
+            <div class="scrub-progress-stats" id="scrub-live-stats">
+              <div class="sps-item"><div class="sps-dot" style="background:var(--success)"></div><div><div class="sps-label">Mobile 🟢</div><div class="sps-value text-success" id="sp-mobile">0</div></div></div>
+              <div class="sps-item"><div class="sps-dot" style="background:var(--danger)"></div><div><div class="sps-label">Landline 🔴</div><div class="sps-value text-danger" id="sp-land">0</div></div></div>
+              <div class="sps-item"><div class="sps-dot" style="background:var(--warning)"></div><div><div class="sps-label">VoIP / Other 🟡</div><div class="sps-value text-warn" id="sp-voip">0</div></div></div>
+              <div class="sps-item"><div class="sps-dot" style="background:var(--text-muted)"></div><div><div class="sps-label">Unknown ⚪</div><div class="sps-value text-muted" id="sp-unknown">0</div></div></div>
+            </div>
+            <p class="text-muted fs-13 mt-16">Credits used so far: <span id="sp-credits" class="fw-600 text-2">0</span></p>
+            <button class="btn btn-danger btn-sm mt-16" onclick="stopScrub()">⏹ Stop Scrubbing</button>
+          </div>
+        </div>
+
+        <!-- Scrub complete -->
+        <div id="scrub-step-4" class="hidden">
+          <div class="card mb-16">
+            <h3 class="mb-16">✅ Scrub Complete</h3>
+            <div class="import-summary" id="scrub-complete-summary"></div>
+          </div>
+          <div class="flex-row">
+            <button class="btn btn-primary" onclick="navigate('export')">📤 Export Mobile Numbers →</button>
+            <button class="btn btn-ghost" onclick="goToScrubStep(1)">↺ Run Another Scrub</button>
+          </div>
+        </div>
+
+        <!-- Scrub History -->
+        <div class="card mt-24">
+          <h3 class="mb-16">Recent Scrub Sessions</h3>
+          <div id="scrub-history-wrap">
+            <div class="loading-center" style="padding:20px"><div class="spinner"></div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======= EXPORT ======= -->
+      <section id="page-export" class="page-section hidden">
+        <div class="page-header">
+          <div class="page-header-left">
+            <h2>📤 Export Leads</h2>
+            <p>Pull from your mobile-confirmed pool. Tag every batch to a rep. The database tracks exactly who has what.</p>
+          </div>
+        </div>
+
+        <!-- Central database status -->
+        <div class="db-status-bar mb-24" id="export-db-status">
+          <div class="db-stat"><div class="db-stat-val" id="exp-db-total">—</div><div class="db-stat-lbl">Total in Database</div></div>
+          <div class="db-stat-divider"></div>
+          <div class="db-stat"><div class="db-stat-val text-success" id="exp-db-mobile">—</div><div class="db-stat-lbl">Mobile Confirmed</div></div>
+          <div class="db-stat-divider"></div>
+          <div class="db-stat"><div class="db-stat-val text-warn" id="exp-db-exported">—</div><div class="db-stat-lbl">Already Exported</div></div>
+          <div class="db-stat-divider"></div>
+          <div class="db-stat"><div class="db-stat-val text-blue" id="exp-db-fresh">—</div><div class="db-stat-lbl">Fresh / Never Exported 🟢</div></div>
+        </div>
+
+        <!-- Step 1: Filter + configure -->
+        <div id="export-step-1">
+          <div class="card mb-16">
+            <h3 class="mb-16">1. Filter Your Export Pool</h3>
+            <div class="grid-2 gap-16 mb-16">
+              <div class="form-group">
+                <label class="form-label">Vertical</label>
+                <select class="form-select" id="export-vertical" onchange="refreshExportPool()"><option value="">All Verticals</option></select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">State</label>
+                <select class="form-select" id="export-state" onchange="refreshExportPool()">
+                  <option value="">All States</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">County <span class="text-muted">(optional)</span></label>
+                <select class="form-select" id="export-county" onchange="refreshExportPool()"><option value="">All Counties</option></select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Export Format</label>
+                <select class="form-select" id="export-format">
+                  <option value="fieldpal">FieldPal CSV</option>
+                  <option value="raw">Raw CSV (all fields)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Pool status after filter -->
+            <div class="surface mb-16" id="export-pool-status">
+              <p class="text-muted fs-13">Set filters above to see available records.</p>
+            </div>
+
+            <!-- Show already-exported toggle -->
+            <div class="checkbox-row mb-16">
+              <input type="checkbox" id="export-include-prev" onchange="refreshExportPool()">
+              <label for="export-include-prev">Include records already exported <span class="text-muted fs-13">(override — use carefully)</span></label>
+            </div>
+          </div>
+
+          <div class="card mb-16">
+            <h3 class="mb-16">2. How Many &amp; Who Gets Them</h3>
+            <div class="grid-2 gap-16 mb-16">
+              <div class="form-group">
+                <label class="form-label">How many records?
+                  <span class="info-icon" data-tip="Type a number for a partial export, or leave blank / type 'all' to export everything matching your filters.">i</span>
+                </label>
+                <div class="flex-row gap-8">
+                  <input type="number" class="form-input" id="export-count" placeholder="e.g. 100" min="1" oninput="updateExportCount()">
+                  <button class="btn btn-ghost btn-sm" onclick="setExportAll()" style="white-space:nowrap">All of them</button>
+                </div>
+                <div class="fs-12 text-muted mt-8" id="export-count-label">Enter a number above</div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Assign to rep
+                  <span class="info-icon" data-tip="Every exported record gets tagged with this name. You'll see it in the export log and on each lead record.">i</span>
+                </label>
+                <select class="form-select" id="export-rep" onchange="handleRepSelect()">
+                  <option value="">— Select rep —</option>
+                  <option value="__self__">Myself (Rob)</option>
+                  <option value="__new__">+ Add new rep…</option>
+                </select>
+                <input type="text" class="form-input mt-8 hidden" id="export-rep-new" placeholder="Type rep name…" oninput="updateExportLabel()">
+              </div>
+            </div>
+            <div class="form-group mb-16">
+              <label class="form-label">Batch label <span class="text-muted fs-13">(auto-filled, edit if needed)</span></label>
+              <input type="text" class="form-input" id="export-batch-label" placeholder="e.g. Kristy — Oakland Power Wash — June 2026">
+            </div>
+          </div>
+
+          <!-- Export preview -->
+          <div class="card mb-16 hidden" id="export-preview-card">
+            <h3 class="mb-8">Preview <span id="export-preview-count" class="text-muted fs-14"></span></h3>
+            <div class="export-preview" id="export-preview-wrap"></div>
+          </div>
+
+          <div class="flex-row">
+            <button class="btn btn-primary btn-lg" id="export-download-btn" onclick="runExport()" disabled>📤 Download &amp; Tag</button>
+            <button class="btn btn-ghost" onclick="previewExport()">👁 Preview First</button>
+          </div>
+          <p class="text-muted fs-12 mt-8">Downloaded records are immediately tagged to the assigned rep and will not appear in future fresh exports.</p>
+        </div>
+
+        <!-- Export History -->
+        <div class="card mt-24">
+          <div class="flex-row mb-16">
+            <h3 style="flex:1">Export History</h3>
+            <button class="btn btn-ghost btn-sm" onclick="loadExportHistory()">↻ Refresh</button>
+          </div>
+          <div id="export-history-wrap">
+            <div class="empty-state" style="padding:30px">
+              <div class="empty-icon">📂</div>
+              <h3>No exports yet</h3>
+              <p>Your export history appears here. Every batch is logged — who got it, when, how many.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======= SEARCH (LEAD FINDER) ======= -->
+      <section id="page-search" class="page-section hidden">
+        <div class="page-header">
+          <div class="page-header-left">
+            <h2>🌐 Find Leads</h2>
+            <p>Pull fresh business leads from multiple sources. Results go to Staging Area first.</p>
+          </div>
+        </div>
+
+        <div class="card mb-16">
+          <h3 class="mb-16">What are you looking for?
+            <span class="info-icon" style="margin-left:8px" data-tip="Select one or more business types. You can combine multiple verticals in one search.">i</span>
+          </h3>
+          <div class="vertical-checkboxes mb-16" id="search-verticals"></div>
+        </div>
+
+        <div class="card mb-16">
+          <h3 class="mb-16">Where?</h3>
+          <div class="grid-3 gap-16">
+            <div class="form-group">
+              <label class="form-label">State</label>
+              <select class="form-select" id="search-state">
+                <option value="">All States</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">County <span class="info-icon" data-tip="Optional. Narrows your search to a specific county.">i</span></label>
+              <select class="form-select" id="search-county"><option value="">All Counties</option></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">City <span class="info-icon" data-tip="Optional. Most specific geography filter.">i</span></label>
+              <select class="form-select" id="search-city"><option value="">All Cities</option></select>
+            </div>
+          </div>
+        </div>
+
+        <div class="card mb-16">
+          <h3 class="mb-16">How many?</h3>
+          <div class="form-group" style="max-width:200px">
+            <label class="form-label">Target records <span class="info-icon" data-tip="Type any number. Larger searches take more time and use more ScraperAPI credits. We'll keep going until we hit your target or run out of results.">i</span></label>
+            <input type="number" class="form-input" id="search-target" value="500" min="1" oninput="warnLargeSearch(this)">
+            <div class="fs-12 text-muted mt-8 hidden" id="search-target-warn">⚠️ Large searches use significant ScraperAPI credits and may take several minutes.</div>
+          </div>
+        </div>
+
+        <div class="card mb-16">
+          <h3 class="mb-16">Search Sources</h3>
+          <div class="source-tiles" id="search-sources">
+            <label class="source-tile selected" onclick="toggleSource(this)">
+              <input type="checkbox" checked> <div><div class="st-name">DuckDuckGo</div><div class="st-desc">Free. No credit burn. Recommended first.</div></div>
+              <span class="info-icon" data-tip="Searches DuckDuckGo for businesses in your area. Free — no ScraperAPI credits.">i</span>
+            </label>
+            <label class="source-tile" onclick="toggleSource(this)">
+              <input type="checkbox"> <div><div class="st-name">Google Maps</div><div class="st-desc">Uses ScraperAPI credits. Best for local.</div></div>
+              <span class="info-icon" data-tip="Searches Google Maps listings. Uses ScraperAPI credits but returns very accurate local data.">i</span>
+            </label>
+            <label class="source-tile" onclick="toggleSource(this)">
+              <input type="checkbox"> <div><div class="st-name">Yahoo</div><div class="st-desc">Good backup. Tracking numbers filtered.</div></div>
+              <span class="info-icon" data-tip="Good backup source. Tracking numbers detected and filtered automatically.">i</span>
+            </label>
+            <label class="source-tile" onclick="toggleSource(this)">
+              <input type="checkbox"> <div><div class="st-name">Yelp</div><div class="st-desc">Strong owner data. 2-pass for real number.</div></div>
+              <span class="info-icon" data-tip="Yelp often shows real owner numbers. We run a second pass to confirm the real business number.">i</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="card mb-24">
+          <h3 class="mb-16">Filters</h3>
+          <div class="flex-col gap-8">
+            <div class="checkbox-row">
+              <input type="checkbox" id="filter-tracking" checked>
+              <label for="filter-tracking">Filter out tracking numbers automatically <span class="info-icon" data-tip="Yahoo and Yelp sometimes show a tracking number instead of the real business number. We detect and filter these, storing the real number from the business website.">i</span></label>
+            </div>
+            <div class="checkbox-row">
+              <input type="checkbox" id="filter-dupes" checked>
+              <label for="filter-dupes">Skip records already in my database</label>
+            </div>
+            <div class="checkbox-row">
+              <input type="checkbox" id="filter-prev" checked>
+              <label for="filter-prev">Skip records previously found in searches</label>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn btn-primary btn-lg" onclick="runSearch()">🔍 Find Leads</button>
+
+        <!-- Search progress (hidden until search runs) -->
+        <div class="card mt-24 hidden" id="search-progress-card">
+          <h3 class="mb-16" id="search-progress-title">Searching…</h3>
+          <div class="progress-wrap mb-16"><div class="progress-bar" id="search-progress-bar" style="width:0%"></div></div>
+          <p class="text-muted fs-13" id="search-progress-label">Initializing search…</p>
+          <button class="btn btn-danger btn-sm mt-16" onclick="stopSearch()">⏹ Stop Search</button>
+        </div>
+      </section>
+
+      <!-- ======= ASSOCIATIONS ======= -->
+      <section id="page-associations" class="page-section hidden">
+        <div class="page-header">
+          <div class="page-header-left">
+            <h2>🏢 Find Associations</h2>
+            <p>Discover trade associations and their member directories by vertical and state.</p>
+          </div>
+        </div>
+
+        <div class="card mb-16">
+          <h3 class="mb-16">Search Parameters</h3>
+          <div class="vertical-checkboxes mb-16" id="assoc-verticals"></div>
+          <div class="grid-2 gap-16 mb-16">
+            <div class="form-group">
+              <label class="form-label">State</label>
+              <select class="form-select" id="assoc-state">
+                <option value="">All States</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Search Depth <span class="info-icon" data-tip="Pass 1: main page only. Pass 2: main + About/Contact. Pass 3: full deep search including member directories (most complete, slowest).">i</span></label>
+              <select class="form-select" id="assoc-depth">
+                <option value="1">1 Pass — Main page only (fastest)</option>
+                <option value="2">2 Passes — Main + About/Contact</option>
+                <option value="3">3 Passes — Full deep search (most complete)</option>
+              </select>
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="runAssociationSearch()">🔍 Find Associations</button>
+        </div>
+
+        <div id="assoc-results" class="hidden">
+          <h3 class="mb-16" id="assoc-results-title">Results</h3>
+          <div id="assoc-results-list"></div>
+        </div>
+
+        <div class="card mt-16 hidden" id="assoc-progress-card">
+          <h3 class="mb-16">Searching Associations…</h3>
+          <div class="progress-wrap mb-16"><div class="progress-bar" id="assoc-progress-bar" style="width:0%"></div></div>
+          <p class="text-muted fs-13" id="assoc-progress-label">Initializing…</p>
+        </div>
+      </section>
+
+      <!-- ======= NETWORKING GROUPS ======= -->
+      <section id="page-networking" class="page-section hidden">
+        <div class="page-header">
+          <div class="page-header-left">
+            <h2>🤝 Find Networking Groups</h2>
+            <p>Discover BNI chapters, chambers of commerce, and trade networking groups.</p>
+          </div>
+        </div>
+
+        <div class="card mb-16">
+          <div class="grid-2 gap-16 mb-16">
+            <div class="form-group">
+              <label class="form-label">State</label>
+              <select class="form-select" id="net-state">
+                <option value="">All States</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">County</label>
+              <select class="form-select" id="net-county"><option value="">All Counties</option></select>
+            </div>
+          </div>
+          <h3 class="mb-8">Group Types</h3>
+          <div class="flex-col gap-8 mb-16">
+            <div class="checkbox-row"><input type="checkbox" id="gt-bni" checked><label for="gt-bni">BNI Chapters <span class="info-icon" data-tip="Business Network International — structured weekly networking groups.">i</span></label></div>
+            <div class="checkbox-row"><input type="checkbox" id="gt-chamber" checked><label for="gt-chamber">Chamber of Commerce</label></div>
+            <div class="checkbox-row"><input type="checkbox" id="gt-trade" checked><label for="gt-trade">Trade Networking</label></div>
+            <div class="checkbox-row"><input type="checkbox" id="gt-re" checked><label for="gt-re">Real Estate Groups</label></div>
+            <div class="checkbox-row"><input type="checkbox" id="gt-biz" checked><label for="gt-biz">Business Owner Groups</label></div>
+            <div class="checkbox-row"><input type="checkbox" id="gt-other" checked><label for="gt-other">Other / General</label></div>
+          </div>
+          <button class="btn btn-primary" onclick="runNetworkingSearch()">🔍 Find Networking Groups</button>
+        </div>
+
+        <div id="net-results" class="hidden">
+          <h3 class="mb-16" id="net-results-title">Results</h3>
+          <div id="net-results-list"></div>
+        </div>
+      </section>
+
+      <!-- ======= STAGING AREA ======= -->
+      <section id="page-staging" class="page-section hidden">
+        <div class="page-header">
+          <div class="page-header-left">
+            <h2>📋 Staging Area</h2>
+            <p>Review leads found in searches before importing to your database.</p>
+          </div>
+          <div class="page-header-actions">
+            <button class="btn btn-danger btn-sm" onclick="clearStaging()">🗑 Clear All</button>
+          </div>
+        </div>
+
+        <div id="staging-empty" class="empty-state card">
+          <div class="empty-icon">📋</div>
+          <h3>Staging area is empty</h3>
+          <p>Run a search in Lead Finder — results will land here for your review before being added to the database.</p>
+          <button class="btn btn-primary" onclick="navigate('search')">🌐 Go to Search</button>
+        </div>
+
+        <div id="staging-content" class="hidden">
+          <div class="card mb-16">
+            <div class="flex-row mb-16">
+              <button class="btn btn-ghost btn-sm" onclick="selectAllStaging()">Select All</button>
+              <button class="btn btn-ghost btn-sm" onclick="deselectAllStaging()">Deselect All</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteSelectedStaging()">Delete Selected</button>
+              <span class="text-muted fs-13" id="staging-selected-count" style="margin-left:auto">0 selected</span>
+            </div>
+            <div id="staging-rows"></div>
+          </div>
+
+          <div class="card">
+            <h3 class="mb-16">Import Selected</h3>
+            <div class="grid-2 gap-16 mb-16">
+              <div class="form-group">
+                <label class="form-label">Vertical</label>
+                <select class="form-select" id="staging-vertical"></select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Source Tag</label>
+                <input type="text" class="form-input" id="staging-source" placeholder="Auto-filled from search" readonly>
+              </div>
+            </div>
+            <button class="btn btn-primary" id="staging-import-btn" onclick="importStaging()">✓ Import Selected Records</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======= ASK CLAUDE ======= -->
+      <section id="page-claude" class="page-section hidden">
+        <div class="page-header">
+          <div class="page-header-left">
+            <h2><span class="star-icon" id="claude-page-star" style="vertical-align:middle;margin-right:8px"></span>Ask Claude</h2>
+            <p>Your AI assistant has full read access to your lead database. Ask anything.</p>
+          </div>
+          <div class="page-header-actions">
+            <button class="btn btn-ghost btn-sm" onclick="newClaudeSession()">+ New Session</button>
+          </div>
+        </div>
+
+        <div class="card" style="padding:0;overflow:hidden">
+          <div class="claude-chat">
+            <div class="chat-messages" id="claude-messages">
+              <div class="chat-msg">
+                <div class="chat-avatar ai" id="claude-welcome-avatar"></div>
+                <div class="chat-bubble" id="claude-welcome">
+                  Hi Rob. Loading your database stats…
+                </div>
+              </div>
+            </div>
+            <div class="chat-input-row">
+              <input type="text" class="form-input" id="claude-input"
+                placeholder="Ask anything about your leads, campaigns, or strategy…"
+                onkeydown="if(event.key==='Enter')sendClaudeMessage()">
+              <button class="btn btn-primary" onclick="sendClaudeMessage()">Send ↑</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======= REPORTS ======= -->
+      <section id="page-reports" class="page-section hidden">
+        <div class="page-header">
+          <div class="page-header-left">
+            <h2>📈 Reports</h2>
+            <p>Association lists, import history, scrub history, and export logs.</p>
+          </div>
+        </div>
+
+        <div class="report-tabs">
+          <button class="report-tab active" onclick="switchReportTab('associations', this)">🏢 Associations</button>
+          <button class="report-tab" onclick="switchReportTab('networking', this)">🤝 Networking Groups</button>
+          <button class="report-tab" onclick="switchReportTab('imports', this)">📥 Import History</button>
+          <button class="report-tab" onclick="switchReportTab('scrubs', this)">🔍 Scrub History</button>
+          <button class="report-tab" onclick="switchReportTab('exports', this)">📤 Export Logs</button>
+        </div>
+
+        <div id="report-tab-associations">
+          <div id="report-assoc-wrap">
+            <div class="loading-center"><div class="spinner"></div></div>
+          </div>
+        </div>
+        <div id="report-tab-networking" class="hidden">
+          <div id="report-net-wrap">
+            <div class="loading-center"><div class="spinner"></div></div>
+          </div>
+        </div>
+        <div id="report-tab-imports" class="hidden">
+          <div id="report-imports-wrap">
+            <div class="loading-center"><div class="spinner"></div></div>
+          </div>
+        </div>
+        <div id="report-tab-scrubs" class="hidden">
+          <div id="report-scrubs-wrap">
+            <div class="loading-center"><div class="spinner"></div></div>
+          </div>
+        </div>
+        <div id="report-tab-exports" class="hidden">
+          <div id="report-exports-wrap">
+            <div class="loading-center"><div class="spinner"></div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======= SETTINGS ======= -->
+      <section id="page-settings" class="page-section hidden">
+        <div class="page-header">
+          <div class="page-header-left">
+            <h2>⚙️ Settings</h2>
+            <p>API keys, scrubbing defaults, demo mode, and user management.</p>
+          </div>
+        </div>
+
+        <div class="card mb-24">
+          <div class="settings-section">
+            <div class="settings-section-title">API Keys</div>
+
+            <div class="api-row">
+              <div class="form-group">
+                <label class="form-label">Claude API Key <span class="info-icon" data-tip="Powers the AI assistant. Get your key at console.anthropic.com">i</span></label>
+                <input type="password" class="form-input" id="key-claude" placeholder="sk-ant-…">
+              </div>
+              <button class="api-test-btn" onclick="testKey('claude')">Test</button>
+            </div>
+
+            <div class="api-row">
+              <div class="form-group">
+                <label class="form-label">ScraperAPI Key <span class="info-icon" data-tip="Used for all web searches in Lead Finder. Get your key at scraperapi.com">i</span></label>
+                <input type="password" class="form-input" id="key-scraper" placeholder="Your ScraperAPI key">
+              </div>
+              <button class="api-test-btn" onclick="testKey('scraper')">Test</button>
+            </div>
+
+            <div class="api-row">
+              <div class="form-group">
+                <label class="form-label">NumVerify API Key <span class="info-icon" data-tip="Validates phone numbers as mobile or landline. Get your key at numverify.com">i</span></label>
+                <input type="password" class="form-input" id="key-numverify" placeholder="Your NumVerify key">
+              </div>
+              <button class="api-test-btn" onclick="testKey('numverify')">Test</button>
+            </div>
+
+            <div class="api-row">
+              <div class="form-group">
+                <label class="form-label">Supabase Project URL <span class="info-icon" data-tip="Your cloud database URL. Find it at supabase.com → your project → Settings → API">i</span></label>
+                <input type="text" class="form-input" id="key-sb-url" placeholder="https://xxxx.supabase.co">
+              </div>
+            </div>
+
+            <div class="api-row">
+              <div class="form-group">
+                <label class="form-label">Supabase Anon Key <span class="info-icon" data-tip="Your Supabase public API key. Find it at supabase.com → your project → Settings → API">i</span></label>
+                <input type="password" class="form-input" id="key-sb-key" placeholder="eyJ…">
+              </div>
+              <button class="api-test-btn" onclick="testKey('supabase')">Test Connection</button>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-section-title">Scrubbing Defaults</div>
+            <div class="form-group mb-16" style="max-width:200px">
+              <label class="form-label">Default batch size <span class="info-icon" data-tip="How many records to pull and scrub at one time. 100 is recommended.">i</span></label>
+              <input type="number" class="form-input" id="setting-batch-size" value="100" min="10" max="500">
+            </div>
+            <div class="checkbox-row">
+              <input type="checkbox" id="setting-confirm-scrub" checked>
+              <label for="setting-confirm-scrub">Require confirmation before scrubbing</label>
+            </div>
+          </div>
+
+          <div class="settings-section" id="demo-mode-section">
+            <div class="settings-section-title">Demo Mode</div>
+            <div class="toggle-wrap mb-8">
+              <div class="toggle" id="demo-toggle" onclick="toggleDemoMode()"></div>
+              <span class="fs-14" id="demo-toggle-label">Off</span>
+              <span class="info-icon" data-tip="Replaces all real data with impressive mock data for sales presentations. A yellow banner always shows when Demo Mode is active.">i</span>
+            </div>
+            <p class="text-muted fs-13">Only Founder role can toggle Demo Mode. All data replaced with mock data when active.</p>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-section-title">User Management</div>
+            <div id="user-list"></div>
+            <button class="btn btn-ghost btn-sm mt-16" onclick="addUser()">+ Add User</button>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-section-title">System</div>
+            <table class="sys-table">
+              <tr><td>Total records in database</td><td id="sys-total">—</td></tr>
+              <tr><td>Last import</td><td id="sys-last-import">—</td></tr>
+              <tr><td>Last scrub</td><td id="sys-last-scrub">—</td></tr>
+            </table>
+            <div class="flex-row mt-16">
+              <button class="btn btn-ghost btn-sm" onclick="exportAllData()">Export All Data</button>
+              <button class="btn btn-ghost btn-sm" onclick="clearStagingFromSettings()">Clear Staging Area</button>
+              <button class="btn btn-ghost btn-sm" onclick="navigate('reports')">View Logs</button>
+            </div>
+          </div>
+
+          <div class="flex-row" style="justify-content:flex-end">
+            <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+          </div>
+        </div>
+      </section>
+
+    </div><!-- /#page -->
+  </div><!-- /#main -->
+</div><!-- /#app -->
+
+<!-- ============================================================
+     FLOATING CLAUDE FAB + PANEL
+     ============================================================ -->
+<button id="claude-fab" onclick="toggleClaudePanel()" title="Ask Claude" aria-label="Ask Claude"><span id="fab-star"></span></button>
+
+<div id="claude-panel">
+  <div class="cp-header">
+    <h3><span id="cp-header-star" style="vertical-align:middle;margin-right:6px"></span>Ask Claude</h3>
+    <button class="cp-close" onclick="toggleClaudePanel()">✕</button>
+  </div>
+  <div class="cp-messages" id="cp-messages">
+    <div class="chat-msg">
+      <div class="chat-avatar ai" id="cp-first-avatar" style="width:24px;height:24px"></div>
+      <div class="chat-bubble" id="cp-context-msg" style="font-size:13px">Loading context…</div>
+    </div>
+  </div>
+  <div class="cp-input-row">
+    <input type="text" class="form-input" style="font-size:13px" id="cp-input"
+      placeholder="Ask anything…"
+      onkeydown="if(event.key==='Enter')sendCpMessage()">
+    <button class="btn btn-primary btn-sm" onclick="sendCpMessage()">↑</button>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div id="toast-container"></div>
+
+<!-- ============================================================
+     MOBILE BOTTOM NAV
+     ============================================================ -->
+<nav id="mobile-nav">
+  <div class="mobile-nav-items">
+    <button class="mobile-nav-item active" data-page="dashboard" onclick="navigate('dashboard', this)">
+      <span class="mn-icon">📊</span> Bank
+    </button>
+    <button class="mobile-nav-item" data-page="search" onclick="navigate('search', this)">
+      <span class="mn-icon">🌐</span> Find
+    </button>
+    <button class="mobile-nav-item" data-page="staging" onclick="navigate('staging', this)">
+      <span class="mn-icon">📋</span> Staging
+    </button>
+    <button class="mobile-nav-item" data-page="claude" onclick="navigate('claude', this)">
+      <span class="mn-icon" id="mobile-nav-star"></span> Claude
+    </button>
+    <button class="mobile-nav-item" data-page="settings" onclick="navigate('settings', this)">
+      <span class="mn-icon">⚙️</span> Settings
+    </button>
+  </div>
+</nav>
+
+<!-- ============================================================
+     JAVASCRIPT — CORE INFRASTRUCTURE
+     ============================================================ -->
+<script>
+/* ================================================================
+   AI STAR ICON — inline SVG, ~430 bytes, replaces all robot emoji
+   ================================================================ */
+const AI_STAR_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" style="display:inline-block;vertical-align:middle"><defs><linearGradient id="aisg" x1="0%" y1="50%" x2="100%" y2="50%"><stop offset="0%" stop-color="#00c2ff"/><stop offset="50%" stop-color="#4f6ef7"/><stop offset="100%" stop-color="#8b3cf7"/></linearGradient></defs><path d="M50 1 C48 28 72 28 99 50 C72 72 52 72 50 99 C48 72 28 72 1 50 C28 28 52 28 50 1Z" fill="url(#aisg)"/></svg>`;
+
+// Helper: returns star img tag sized to px
+function aiStar(px = 20) {
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="${px}" height="${px}" style="display:inline-block;vertical-align:middle;flex-shrink:0"><defs><linearGradient id="aisg${px}" x1="0%" y1="50%" x2="100%" y2="50%"><stop offset="0%" stop-color="#00c2ff"/><stop offset="50%" stop-color="#4f6ef7"/><stop offset="100%" stop-color="#8b3cf7"/></linearGradient></defs><path d="M50 1 C48 28 72 28 99 50 C72 72 52 72 50 99 C48 72 28 72 1 50 C28 28 52 28 50 1Z" fill="url(#aisg${px})"/></svg>`;
+}
+
+/* ================================================================
+   APP STATE
+   ================================================================ */
+const APP = {
+  user: null,
+  role: null,       // 'founder' | 'coo'
+  demoMode: false,
+  currentPage: 'dashboard',
+  claudeSessionId: null,
+  claudeHistory: [],  // [{role, content}]
+  cpHistory: [],      // floating panel history
+  scrubAbort: false,
+  searchAbort: false,
+  stagingData: [],    // in-memory staging records
+  settings: {},       // loaded from localStorage / Supabase
+
+  // API keys — loaded from settings
+  get claudeKey()    { return this.settings.claudeKey    || ''; },
+  get scraperKey()   { return this.settings.scraperKey   || ''; },
+  get numverifyKey() { return this.settings.numverifyKey || ''; },
+  get sbUrl()        { return this.settings.sbUrl        || ''; },
+  get sbKey()        { return this.settings.sbKey        || ''; },
+};
+
+/* ================================================================
+   SUPABASE HELPER
+   ================================================================ */
+const SB = {
+  headers() {
+    if (!APP.sbUrl || !APP.sbKey) throw new Error('Supabase not configured. Go to Settings and add your Supabase URL and key.');
+    return {
+      'apikey':        APP.sbKey,
+      'Authorization': `Bearer ${APP.sbKey}`,
+      'Content-Type':  'application/json',
+      'Prefer':        'return=representation',
+    };
+  },
+
+  url(table, query = '') {
+    return `${APP.sbUrl}/rest/v1/${table}${query ? '?' + query : ''}`;
+  },
+
+  async select(table, query = '') {
+    const res = await fetch(SB.url(table, query), { headers: SB.headers() });
+    if (!res.ok) throw new Error(`DB error: ${res.status} — ${await res.text()}`);
+    return res.json();
+  },
+
+  async insert(table, data) {
+    const res = await fetch(SB.url(table), {
+      method: 'POST',
+      headers: SB.headers(),
+      body: JSON.stringify(Array.isArray(data) ? data : [data]),
+    });
+    if (!res.ok) throw new Error(`Insert error: ${res.status} — ${await res.text()}`);
+    return res.json();
+  },
+
+  async update(table, id, data) {
+    const res = await fetch(SB.url(table, `id=eq.${id}`), {
+      method: 'PATCH',
+      headers: SB.headers(),
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error(`Update error: ${res.status} — ${await res.text()}`);
+    return res.json();
+  },
+
+  async upsert(table, data, onConflict = 'id') {
+    const res = await fetch(SB.url(table) + `?on_conflict=${onConflict}`, {
+      method: 'POST',
+      headers: { ...SB.headers(), 'Prefer': 'resolution=merge-duplicates,return=representation' },
+      body: JSON.stringify(Array.isArray(data) ? data : [data]),
+    });
+    if (!res.ok) throw new Error(`Upsert error: ${res.status} — ${await res.text()}`);
+    return res.json();
+  },
+
+  async delete(table, query) {
+    const res = await fetch(SB.url(table, query), {
+      method: 'DELETE',
+      headers: SB.headers(),
+    });
+    if (!res.ok) throw new Error(`Delete error: ${res.status} — ${await res.text()}`);
+    return true;
+  },
+
+  async count(table, query = '') {
+    const res = await fetch(SB.url(table, (query ? query + '&' : '') + 'select=id'), {
+      headers: { ...SB.headers(), 'Prefer': 'count=exact', 'Range': '0-0' },
+    });
+    if (!res.ok) return 0;
+    const range = res.headers.get('content-range') || '';
+    const match = range.match(/\/(\d+)$/);
+    return match ? parseInt(match[1], 10) : 0;
+  },
+};
+
+/* ================================================================
+   SETTINGS — LOCAL STORAGE
+   ================================================================ */
+function loadSettings() {
+  try {
+    const saved = localStorage.getItem('llf2_settings');
+    if (saved) APP.settings = JSON.parse(saved);
+  } catch(e) { console.warn('Settings load failed', e); }
+}
+
+function saveSettings() {
+  // Read all fields
+  const keys = ['claudeKey','scraperKey','numverifyKey','sbUrl','sbKey','batchSize','confirmScrub'];
+  APP.settings.claudeKey    = document.getElementById('key-claude')?.value    || APP.settings.claudeKey    || '';
+  APP.settings.scraperKey   = document.getElementById('key-scraper')?.value   || APP.settings.scraperKey   || '';
+  APP.settings.numverifyKey = document.getElementById('key-numverify')?.value || APP.settings.numverifyKey || '';
+  APP.settings.sbUrl        = document.getElementById('key-sb-url')?.value    || APP.settings.sbUrl        || '';
+  APP.settings.sbKey        = document.getElementById('key-sb-key')?.value    || APP.settings.sbKey        || '';
+  APP.settings.batchSize    = parseInt(document.getElementById('setting-batch-size')?.value) || 100;
+  APP.settings.confirmScrub = document.getElementById('setting-confirm-scrub')?.checked ?? true;
+
+  try {
+    localStorage.setItem('llf2_settings', JSON.stringify(APP.settings));
+    showToast('Settings saved ✓', 'success');
+  } catch(e) {
+    showToast('Could not save settings: ' + e.message, 'error');
+  }
+}
+
+function populateSettingsFields() {
+  const s = APP.settings;
+  setVal('key-claude',           s.claudeKey    || '');
+  setVal('key-scraper',          s.scraperKey   || '');
+  setVal('key-numverify',        s.numverifyKey || '');
+  setVal('key-sb-url',           s.sbUrl        || '');
+  setVal('key-sb-key',           s.sbKey        || '');
+  setVal('setting-batch-size',   s.batchSize    || 100);
+  const cb = document.getElementById('setting-confirm-scrub');
+  if (cb) cb.checked = s.confirmScrub !== false;
+
+  // Demo mode toggle visibility (founder only)
+  const demoSec = document.getElementById('demo-mode-section');
+  if (demoSec) demoSec.style.display = APP.role === 'founder' ? '' : 'none';
+}
+
+/* ================================================================
+   AUTH — MOCK (real Google/Supabase auth wired in Step 5)
+   ================================================================ */
+function handleGoogleLogin() {
+  // Placeholder — real OAuth wired in Step 5
+  doLogin('Rob Pickering', 'founder');
+}
+
+function handleEmailLogin() {
+  const email = document.getElementById('login-email')?.value?.trim();
+  const pass  = document.getElementById('login-password')?.value;
+  if (!email || !pass) { showLoginError('Enter your email and password.'); return; }
+  // Placeholder check — Step 5 wires real auth
+  if (email && pass) {
+    doLogin(email.split('@')[0], 'founder');
+  } else {
+    showLoginError('Invalid credentials.');
+  }
+}
+
+function doLogin(name, role) {
+  APP.user = name;
+  APP.role = role;
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+  document.getElementById('sidebar-username').textContent = name;
+  document.getElementById('sidebar-role').textContent = role === 'founder' ? 'Founder' : 'Operating Officer';
+  initApp();
+}
+
+function handleSignOut() {
+  APP.user = null; APP.role = null;
+  document.getElementById('app').classList.add('hidden');
+  document.getElementById('login-screen').classList.remove('hidden');
+}
+
+function showLoginError(msg) {
+  const el = document.getElementById('login-error');
+  if (el) { el.textContent = msg; el.classList.remove('hidden'); }
+}
+
+/* ================================================================
+   NAVIGATION
+   ================================================================ */
+function navigate(page, clickedEl) {
+  // Hide all sections
+  document.querySelectorAll('.page-section').forEach(s => s.classList.add('hidden'));
+  // Show target
+  const target = document.getElementById('page-' + page);
+  if (target) target.classList.remove('hidden');
+
+  APP.currentPage = page;
+
+  // Sidebar active state
+  document.querySelectorAll('#sidebar .nav-item').forEach(el => el.classList.remove('active'));
+  const sidebarItem = document.querySelector(`#sidebar [data-page="${page}"]`);
+  if (sidebarItem) sidebarItem.classList.add('active');
+
+  // Mobile nav active state
+  document.querySelectorAll('#mobile-nav .mobile-nav-item').forEach(el => el.classList.remove('active'));
+  const mobileItem = document.querySelector(`#mobile-nav [data-page="${page}"]`);
+  if (mobileItem) mobileItem.classList.add('active');
+
+  // Page-specific init
+  onPageEnter(page);
+
+  // Scroll to top
+  document.getElementById('page').scrollTop = 0;
+}
+
+function onPageEnter(page) {
+  if (page === 'dashboard')    loadDashboard();
+  if (page === 'settings')     populateSettingsFields();
+  if (page === 'scrub')        loadScrubPage();
+  if (page === 'staging')      renderStaging();
+  if (page === 'export')       loadExportPage();
+  if (page === 'reports')      loadReports();
+  if (page === 'claude')       initClaudePage();
+  if (page === 'search')       buildSearchVerticals();
+  if (page === 'associations') buildAssocVerticals();
+}
+
+/* ================================================================
+   DEMO MODE
+   ================================================================ */
+function toggleDemoMode() {
+  if (APP.role !== 'founder') { showToast('Only the Founder can toggle Demo Mode.', 'warn'); return; }
+  APP.demoMode = !APP.demoMode;
+  const banner = document.getElementById('demo-banner');
+  const toggle = document.getElementById('demo-toggle');
+  const label  = document.getElementById('demo-toggle-label');
+  if (APP.demoMode) {
+    banner.classList.add('active');
+    toggle?.classList.add('on');
+    if (label) label.textContent = 'On';
+    showToast('⚠️ Demo Mode activated — all data is simulated.', 'warn');
+  } else {
+    banner.classList.remove('active');
+    toggle?.classList.remove('on');
+    if (label) label.textContent = 'Off';
+    showToast('Demo Mode deactivated — showing real data.', 'success');
+  }
+  // Reload current page with new data mode
+  onPageEnter(APP.currentPage);
+}
+
+function exitDemoMode() {
+  if (APP.demoMode) toggleDemoMode();
+}
+
+/* ================================================================
+   DEMO DATA
+   ================================================================ */
+const DEMO = {
+  stats: { total: 14247, scrubbed: 4820, mobile: 1284, mobileRate: '26.6%' },
+  verticals: [
+    { vertical:'Power Washing',   total:2847, scrubbed:980, mobile:284, rate:'29.0%',  emails:412  },
+    { vertical:'Roofing',         total:1940, scrubbed:740, mobile:196, rate:'26.5%',  emails:890  },
+    { vertical:'Window Cleaning', total:1200, scrubbed:480, mobile:120, rate:'25.0%',  emails:203  },
+    { vertical:'Landscaping',     total:1847, scrubbed:600, mobile:144, rate:'24.0%',  emails:341  },
+    { vertical:'Realtor — Agent', total:3284, scrubbed:820, mobile:172, rate:'21.0%',  emails:2847 },
+    { vertical:'Leasing Agent',   total:940,  scrubbed:120, mobile:20,  rate:'16.7%',  emails:445  },
+    { vertical:'Apartment Owner', total:784,  scrubbed:60,  mobile:8,   rate:'13.3%',  emails:201  },
+    { vertical:'HVAC',            total:1405, scrubbed:20,  mobile:null, rate:'—',     emails:127  },
+  ],
+};
+
+/* ================================================================
+   DASHBOARD
+   ================================================================ */
+async function loadDashboard() {
+  if (APP.demoMode) {
+    renderDashStats(DEMO.stats);
+    renderVerticalTable(DEMO.verticals);
+    return;
+  }
+  if (!APP.sbUrl || !APP.sbKey) {
+    renderDashStats({ total: '—', scrubbed: '—', mobile: '—', mobileRate: '—' });
+    document.getElementById('vertical-table-wrap').innerHTML =
+      `<p class="text-muted fs-13" style="padding:16px">Configure Supabase in <a href="#" onclick="navigate('settings')" style="color:var(--blue)">Settings</a> to load your lead data.</p>`;
+    return;
+  }
+  try {
+    const [total, scrubbed, mobile] = await Promise.all([
+      SB.count('leads'),
+      SB.count('leads', 'phone_verified=eq.true'),
+      SB.count('leads', 'phone_type=eq.mobile'),
+    ]);
+    const mobileRate = scrubbed > 0 ? ((mobile / scrubbed) * 100).toFixed(1) + '%' : '—';
+    renderDashStats({ total, scrubbed, mobile, mobileRate });
+    await loadVerticalIntelligence();
+  } catch(e) {
+    showToast('Dashboard load failed: ' + e.message, 'error');
+    renderDashStats({ total: '—', scrubbed: '—', mobile: '—', mobileRate: '—' });
+  }
+}
+
+function renderDashStats(s) {
+  setTxt('stat-total',       fmtNum(s.total));
+  setTxt('stat-scrubbed',    fmtNum(s.scrubbed));
+  setTxt('stat-mobile',      fmtNum(s.mobile));
+  setTxt('stat-mobile-rate', s.mobileRate);
+}
+
+async function loadVerticalIntelligence() {
+  const wrap = document.getElementById('vertical-table-wrap');
+  wrap.innerHTML = `<div class="loading-center"><div class="spinner"></div><span>Loading…</span></div>`;
+  try {
+    // Aggregate per vertical from Supabase
+    const rows = await SB.select('leads', 'select=vertical,phone_verified,phone_type,email');
+    const map = {};
+    for (const r of rows) {
+      const v = r.vertical || 'Unknown';
+      if (!map[v]) map[v] = { vertical: v, total: 0, scrubbed: 0, mobile: 0, emails: 0 };
+      map[v].total++;
+      if (r.phone_verified) map[v].scrubbed++;
+      if (r.phone_type === 'mobile') map[v].mobile++;
+      if (r.email) map[v].emails++;
+    }
+    const verticals = Object.values(map).map(v => ({
+      ...v,
+      rate: v.scrubbed > 0 ? ((v.mobile / v.scrubbed) * 100).toFixed(1) + '%' : '—',
+    })).sort((a, b) => {
+      // Rank by mobile rate, unranked last
+      const ar = a.scrubbed > 0 ? (a.mobile / a.scrubbed) : -1;
+      const br = b.scrubbed > 0 ? (b.mobile / b.scrubbed) : -1;
+      return br - ar;
+    });
+    renderVerticalTable(verticals);
+  } catch(e) {
+    wrap.innerHTML = `<p class="text-muted fs-13" style="padding:16px">Could not load vertical data: ${e.message}</p>`;
+  }
+}
+
+function renderVerticalTable(verticals) {
+  const wrap = document.getElementById('vertical-table-wrap');
+  if (!verticals?.length) {
+    wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">📊</div><h3>No vertical data yet</h3><p>Import your first CSV to populate the Vertical Intelligence panel.</p><button class="btn btn-primary btn-sm" onclick="navigate('import')">📥 Import CSV</button></div>`;
+    return;
+  }
+  let html = `<table class="data-table" style="width:100%">
+    <thead><tr>
+      <th style="width:32px">
+        Rank <span class="info-icon" data-tip="Rank 1 = best mobile confirmation rate from your actual scrubbed data.">i</span>
+      </th>
+      <th>Vertical</th><th>Total</th><th>Scrubbed</th><th>Mobile</th><th>Rate</th><th>Emails</th><th></th>
+    </tr></thead><tbody>`;
+  verticals.forEach((v, i) => {
+    const rank = v.scrubbed > 0 ? `<span style="color:var(--blue);font-weight:700">${i+1}</span>` : `<span class="text-muted">—</span>`;
+    html += `<tr>
+      <td>${rank}</td>
+      <td class="fw-600">${esc(v.vertical)}</td>
+      <td>${fmtNum(v.total)}</td>
+      <td>${fmtNum(v.scrubbed)}</td>
+      <td>${v.mobile != null ? fmtNum(v.mobile) : '—'}</td>
+      <td>${v.rate === '—' ? '<span class="text-muted">—</span>' : `<span class="text-success fw-600">${v.rate}</span>`}</td>
+      <td>${fmtNum(v.emails)}</td>
+      <td>
+        <div class="vt-actions">
+          <button class="btn btn-ghost btn-sm" onclick="filterByVertical('${esc(v.vertical)}')">View</button>
+          <button class="btn btn-secondary btn-sm" onclick="navigate('scrub')">Scrub</button>
+        </div>
+      </td>
+    </tr>`;
+  });
+  html += `</tbody></table>`;
+  wrap.innerHTML = html;
+}
+
+function applyDashFilters() { loadDashboard(); }
+function resetDashFilters() {
+  ['dash-filter-state','dash-filter-county','dash-filter-city','dash-filter-vertical']
+    .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  loadDashboard();
+}
+function filterByVertical(v) {
+  const el = document.getElementById('dash-filter-vertical');
+  if (el) { el.innerHTML += `<option value="${v}" selected>${v}</option>`; el.value = v; }
+  loadDashboard();
+}
+
+/* ================================================================
+   ALL 50 STATES + DC
+   ================================================================ */
+const ALL_STATES = [
+  'Alabama','Alaska','Arizona','Arkansas','California','Colorado',
+  'Connecticut','Delaware','Florida','Georgia','Hawaii','Idaho',
+  'Illinois','Indiana','Iowa','Kansas','Kentucky','Louisiana',
+  'Maine','Maryland','Massachusetts','Michigan','Minnesota',
+  'Mississippi','Missouri','Montana','Nebraska','Nevada',
+  'New Hampshire','New Jersey','New Mexico','New York',
+  'North Carolina','North Dakota','Ohio','Oklahoma','Oregon',
+  'Pennsylvania','Rhode Island','South Carolina','South Dakota',
+  'Tennessee','Texas','Utah','Vermont','Virginia','Washington',
+  'Washington DC','West Virginia','Wisconsin','Wyoming'
+];
+
+// State → common area codes (for demo data generation)
+const STATE_AREA_CODES = {
+  Alabama:['205','251','256','334'],Alaska:['907'],Arizona:['480','520','602','623','928'],
+  Arkansas:['479','501','870'],California:['209','213','310','323','408','415','424','442',
+  '510','530','559','562','619','626','628','650','657','661','669','707','714','747','760',
+  '805','818','831','858','909','916','925','949','951'],
+  Colorado:['303','719','720','970'],Connecticut:['203','475','860','959'],
+  Delaware:['302'],Florida:['239','305','321','352','386','407','561','727','754','772','786',
+  '813','850','863','904','941','954'],Georgia:['229','404','470','478','678','706','762','770','912'],
+  Hawaii:['808'],Idaho:['208'],Illinois:['217','224','309','312','331','618','630','708','773',
+  '779','815','847','872'],Indiana:['219','260','317','463','574','765','812','930'],
+  Iowa:['319','515','563','641','712'],Kansas:['316','620','785','913'],
+  Kentucky:['270','364','502','606','859'],Louisiana:['225','318','337','504','985'],
+  Maine:['207'],Maryland:['240','301','410','443','667'],
+  Massachusetts:['339','351','413','508','617','774','781','857','978'],
+  Michigan:['231','248','269','313','517','586','616','679','734','810','906','947','989'],
+  Minnesota:['218','320','507','612','651','763','952'],Mississippi:['228','601','662','769'],
+  Missouri:['314','417','573','636','660','816'],Montana:['406'],Nebraska:['308','402','531'],
+  Nevada:['702','725','775'],['New Hampshire']:['603'],['New Jersey']:['201','551','609','732',
+  '848','856','862','908','973'],['New Mexico']:['505','575'],
+  ['New York']:['212','315','332','347','516','518','585','607','631','646','680','716','718',
+  '838','845','914','917','929','934'],['North Carolina']:['252','336','704','743','828','910',
+  '919','980','984'],['North Dakota']:['701'],Ohio:['216','220','234','330','380','419','440',
+  '513','567','614','740','937'],Oklahoma:['405','539','580','918'],Oregon:['458','503','541','971'],
+  Pennsylvania:['215','223','267','272','412','484','570','610','717','724','814','878'],
+  ['Rhode Island']:['401'],['South Carolina']:['803','843','854','864'],
+  ['South Dakota']:['605'],Tennessee:['423','615','629','731','865','901','931'],
+  Texas:['210','214','254','281','325','346','361','409','430','432','469','512','682','713',
+  '726','737','806','817','830','832','903','915','936','940','956','972','979'],
+  Utah:['385','435','801'],Vermont:['802'],Virginia:['276','434','540','571','703','757','804'],
+  Washington:['206','253','360','425','509','564'],['Washington DC']:['202'],
+  ['West Virginia']:['304','681'],Wisconsin:['262','414','534','608','715','920'],Wyoming:['307']
+};
+
+function getAreaCodesForState(state) {
+  return STATE_AREA_CODES[state] || ['555'];
+}
+
+function populateStateDropdowns() {
+  const stateSelectIds = [
+    'dash-filter-state','scrub-state','export-state',
+    'search-state','assoc-state','net-state'
+  ];
+  const opts = ALL_STATES.map(s => `<option value="${s}">${s}</option>`).join('');
+  stateSelectIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    // Keep first option (All States / blank) and append all states
+    const firstOpt = el.options[0] ? el.options[0].outerHTML : '<option value="">All States</option>';
+    el.innerHTML = firstOpt + opts;
+  });
+}
+
+/* ================================================================
+   VERTICAL LIST (shared across modules)
+   ================================================================ */
+const VERTICALS = [
+  'Power Washing','Roofing','Landscaping','HVAC','Plumbing','Window Cleaning',
+  'Painting','Gutters','Electrical','Pest Control','Carpentry','Concrete / Masonry',
+  'Deck / Outdoor Living','General Contractor','Handyman','Fertilizer / Lawn Treatment',
+  'Siding / Windows / Doors','Realtor — Agent','Real Estate Brokerage',
+  'Property Manager','FSBO','Leasing Agent','Apartment Owner','Apartment Leasing Manager',
+];
+
+const SIC_MAP = {
+  'Power Washing':'7389','Roofing':'1761','Landscaping':'0782','HVAC':'1711','Plumbing':'1711',
+  'Window Cleaning':'7389','Painting':'1731','Gutters':'1761','Electrical':'1731',
+  'Pest Control':'7342','Carpentry':'1751','Concrete / Masonry':'1741','Deck / Outdoor Living':'1521',
+  'General Contractor':'1521','Handyman':'7699','Fertilizer / Lawn Treatment':'0782',
+  'Siding / Windows / Doors':'1521','Realtor — Agent':'6531','Real Estate Brokerage':'6531',
+  'Property Manager':'6531','FSBO':'6531','Leasing Agent':'6512','Apartment Owner':'6513',
+  'Apartment Leasing Manager':'6513',
+};
+
+function populateVerticalSelects() {
+  const selects = ['bulk-vertical','scrub-vertical','export-vertical','staging-vertical'];
+  selects.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const hasAll = id !== 'bulk-vertical';
+    el.innerHTML = hasAll ? '<option value="">All Verticals</option>' : '<option value="">— Select Vertical —</option>';
+    VERTICALS.forEach(v => { el.innerHTML += `<option value="${v}">${v}</option>`; });
+  });
+}
+
+function buildSearchVerticals() {
+  buildVerticalCheckboxes('search-verticals');
+}
+function buildAssocVerticals() {
+  buildVerticalCheckboxes('assoc-verticals');
+}
+function buildVerticalCheckboxes(containerId) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  const homeVerts = VERTICALS.filter(v => !v.startsWith('Realtor') && !v.startsWith('Real Estate') &&
+    !v.startsWith('Property') && !v.startsWith('FSBO') && !v.startsWith('Leasing') && !v.startsWith('Apartment'));
+  el.innerHTML = homeVerts.map(v => `
+    <label class="vc-item">
+      <input type="checkbox" value="${v}"> <label style="pointer-events:none">${v}</label>
+    </label>`).join('');
+}
+
+/* ================================================================
+   CSV IMPORT
+   ================================================================ */
+let importFile = null;
+let importRows = [];
+let importMapping = {};
+
+const FIELD_ALIASES = {
+  'business name': 'business_name', 'company': 'business_name', 'name': 'business_name',
+  'business': 'business_name', 'dba': 'business_name',
+  'phone': 'phone', 'phone number': 'phone', 'telephone': 'phone', 'tel': 'phone',
+  'mobile': 'phone', 'cell': 'phone',
+  'contact': 'contact_name', 'owner': 'contact_name', 'contact name': 'contact_name',
+  'first name': 'contact_name', 'person': 'contact_name',
+  'city': 'city', 'town': 'city',
+  'state': 'state', 'st': 'state',
+  'zip': 'zip', 'zip code': 'zip', 'postal code': 'zip',
+  'email': 'email', 'email address': 'email',
+  'website': 'website', 'url': 'website', 'web': 'website',
+  'address': 'address', 'street': 'address',
+  'county': 'county',
+  'vertical': 'vertical', 'type': 'vertical', 'category': 'vertical', 'trade': 'vertical',
+  'notes': 'notes',
+};
+
+function handleDragOver(e) { e.preventDefault(); document.getElementById('drop-zone').classList.add('drag-over'); }
+function handleDragLeave(e) { document.getElementById('drop-zone').classList.remove('drag-over'); }
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('drop-zone').classList.remove('drag-over');
+  const file = e.dataTransfer?.files[0];
+  if (file) processFile(file);
+}
+function handleFileSelect(e) { const file = e.target?.files[0]; if (file) processFile(file); }
+
+function processFile(file) {
+  if (!file.name.endsWith('.csv')) { showToast('Please upload a .csv file.', 'error'); return; }
+  if (file.size > 52428800) { showToast('File too large. Max 50MB.', 'error'); return; }
+  importFile = file;
+  const reader = new FileReader();
+  reader.onerror = () => showToast('Could not read file.', 'error');
+  reader.onload = (e) => {
+    try {
+      const text = e.target.result;
+      importRows = parseCSV(text);
+      if (importRows.length < 2) { showToast('CSV appears empty or has no data rows.', 'error'); return; }
+      buildColumnMapping(importRows[0]);
+      goToImportStep(2);
+    } catch(err) {
+      showToast('CSV parse error: ' + err.message, 'error');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function parseCSV(text) {
+  const rows = [];
+  const lines = text.split(/\r?\n/).filter(l => l.trim());
+  for (const line of lines) {
+    const cols = [];
+    let cur = '', inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (c === '"') { inQ = !inQ; }
+      else if (c === ',' && !inQ) { cols.push(cur.trim()); cur = ''; }
+      else { cur += c; }
+    }
+    cols.push(cur.trim());
+    rows.push(cols);
+  }
+  return rows;
+}
+
+function buildColumnMapping(headers) {
+  importMapping = {};
+  const mappedFields = {};
+  const tableBody = document.getElementById('map-table');
+
+  let html = `<tr><th>Your Column</th><th>→</th><th>Our Field</th><th></th></tr>`;
+  headers.forEach((h, i) => {
+    const key = h.toLowerCase().trim();
+    const mapped = FIELD_ALIASES[key] || null;
+    if (mapped && !mappedFields[mapped]) {
+      importMapping[i] = mapped;
+      mappedFields[mapped] = true;
+      html += `<tr>
+        <td>"${esc(h)}"</td>
+        <td style="color:var(--text-muted)">→</td>
+        <td><span class="text-success fw-600">${mapped.replace('_',' ')}</span></td>
+        <td><span class="map-ok">✓</span></td>
+      </tr>`;
+    } else {
+      html += `<tr>
+        <td>"${esc(h)}"</td>
+        <td style="color:var(--text-muted)">→</td>
+        <td><select class="form-select" style="padding:6px 10px;font-size:13px" onchange="setMapping(${i}, this.value)">
+          <option value="">Skip</option>
+          <option value="notes">Notes (store as-is)</option>
+          ${['business_name','phone','contact_name','city','state','zip','email','website','address','county','vertical','notes']
+            .map(f => `<option value="${f}">${f.replace('_',' ')}</option>`).join('')}
+        </select></td>
+        <td><span class="map-warn">⚠️</span></td>
+      </tr>`;
+    }
+  });
+  tableBody.innerHTML = html;
+  populateVerticalSelects();
+}
+
+function setMapping(colIdx, field) { importMapping[colIdx] = field || null; }
+
+function previewImport() {
+  if (!importRows?.length) { showToast('No file loaded.', 'error'); return; }
+  const dataRows = importRows.slice(1); // skip header
+  const phoneColIdx = Object.entries(importMapping).find(([,v]) => v === 'phone')?.[0];
+
+  // Count duplicates against in-memory (quick check; real dedup against DB on confirm)
+  const phones = new Set();
+  let dupes = 0;
+  dataRows.forEach(row => {
+    const ph = phoneColIdx != null ? normalizePhone(row[phoneColIdx] || '') : '';
+    if (ph && phones.has(ph)) dupes++;
+    else if (ph) phones.add(ph);
+  });
+
+  const total = dataRows.length;
+  const toImport = total - dupes;
+  const noPhone = dataRows.filter(r => phoneColIdx == null || !r[phoneColIdx]?.trim()).length;
+
+  const src = document.getElementById('import-source')?.value || 'CSV Import';
+  const vert = document.getElementById('bulk-vertical')?.value || 'Not assigned';
+
+  document.getElementById('import-summary').innerHTML = `
+    <div class="row"><span>Total records found</span><span>${fmtNum(total)}</span></div>
+    <div class="row"><span>Duplicate phone numbers</span><span class="text-warn">${fmtNum(dupes)} (will be checked against DB)</span></div>
+    <div class="row"><span>Records to import</span><span class="text-success fw-600">${fmtNum(toImport)}</span></div>
+    <div class="row"><span>Missing phone number</span><span class="text-muted">${fmtNum(noPhone)} (will still import)</span></div>
+    <div class="row"><span>Source tag</span><span>${esc(src)}</span></div>
+    <div class="row"><span>Vertical</span><span>${esc(vert)}</span></div>
+  `;
+  document.getElementById('confirm-import-btn').textContent = `✓ Import ${fmtNum(toImport)} Records`;
+  goToImportStep(3);
+}
+
+async function confirmImport() {
+  if (!APP.sbUrl || !APP.sbKey) { showToast('Configure Supabase in Settings first.', 'error'); return; }
+  goToImportStep(4);
+  const dataRows = importRows.slice(1);
+  const src = document.getElementById('import-source')?.value || 'CSV Import';
+  const vert = document.getElementById('bulk-vertical')?.value || '';
+  const batchId = crypto.randomUUID();
+
+  let imported = 0, skipped = 0;
+  const batchSize = 100;
+
+  // Load existing normalized phones for dedup
+  let existingPhones = new Set();
+  try {
+    const existing = await SB.select('leads', 'select=phone_normalized&phone_normalized=not.is.null');
+    existingPhones = new Set(existing.map(r => r.phone_normalized));
+  } catch(e) { /* proceed without dedup check */ }
+
+  for (let i = 0; i < dataRows.length; i += batchSize) {
+    const chunk = dataRows.slice(i, i + batchSize);
+    const records = [];
+    for (const row of chunk) {
+      const rec = { import_batch_id: batchId, import_date: new Date().toISOString(), source: src };
+      Object.entries(importMapping).forEach(([idx, field]) => {
+        if (field) rec[field] = row[idx]?.trim() || null;
+      });
+      if (!rec.vertical && vert) rec.vertical = vert;
+      rec.phone_normalized = normalizePhone(rec.phone || '');
+      rec.vertical_key = verticalKey(rec.vertical || '');
+      rec.sic_code = SIC_MAP[rec.vertical] || null;
+
+      // Dedup check
+      if (rec.phone_normalized && existingPhones.has(rec.phone_normalized)) {
+        skipped++; continue;
+      }
+      if (rec.phone_normalized) existingPhones.add(rec.phone_normalized);
+      records.push(rec);
+    }
+    if (records.length) {
+      try { await SB.insert('leads', records); imported += records.length; }
+      catch(e) { console.error('Batch insert error', e); }
+    }
+    const pct = Math.round(((i + chunk.length) / dataRows.length) * 100);
+    const bar = document.getElementById('import-progress');
+    const lbl = document.getElementById('import-progress-label');
+    if (bar) bar.style.width = pct + '%';
+    if (lbl) lbl.textContent = `Imported ${fmtNum(imported)} records…`;
+  }
+
+  // Log batch
+  try {
+    await SB.insert('import_batches', [{
+      filename: importFile?.name || 'unknown',
+      total_records: dataRows.length,
+      imported_records: imported,
+      skipped_duplicates: skipped,
+      source_tag: src,
+      vertical: vert,
+      imported_by: APP.user,
+    }]);
+  } catch(e) { console.warn('Batch log failed', e); }
+
+  showToast(`✓ ${fmtNum(imported)} leads added to your database`, 'success');
+  resetImport();
+  navigate('dashboard');
+}
+
+function resetImport() {
+  importFile = null; importRows = []; importMapping = {};
+  const fi = document.getElementById('file-input'); if (fi) fi.value = '';
+  goToImportStep(1);
+}
+function goToImportStep(n) {
+  [1,2,3,4].forEach(i => {
+    const el = document.getElementById('import-step-' + i);
+    if (el) el.classList.toggle('hidden', i !== n);
+  });
+}
+
+/* ================================================================
+   SCRUB PAGE
+   ================================================================ */
+function loadScrubPage() {
+  populateVerticalSelects();
+  loadScrubDbStatus();
+  loadScrubAvailability();
+  loadScrubHistory();
+  goToScrubStep(1);
+}
+
+async function loadScrubDbStatus() {
+  if (!APP.sbUrl || !APP.sbKey) return;
+  try {
+    const [total, scrubbed, mobile, land] = await Promise.all([
+      SB.count('leads'),
+      SB.count('leads', 'phone_verified=eq.true'),
+      SB.count('leads', 'phone_type=eq.mobile'),
+      SB.count('leads', 'phone_type=eq.landline'),
+    ]);
+    const unverified = total - scrubbed;
+    setTxt('scrub-db-total',      fmtNum(total));
+    setTxt('scrub-db-unverified', fmtNum(unverified));
+    setTxt('scrub-db-scrubbed',   fmtNum(scrubbed));
+    setTxt('scrub-db-mobile',     fmtNum(mobile));
+    setTxt('scrub-db-land',       fmtNum(land));
+  } catch(e) { /* silent */ }
+}
+
+async function loadScrubAvailability() {
+  const wrap = document.getElementById('scrub-availability');
+  if (!wrap) return;
+  if (!APP.sbUrl || !APP.sbKey) {
+    wrap.innerHTML = `<p class="text-muted fs-13">Configure Supabase in Settings to see available records.</p>`;
+    return;
+  }
+  try {
+    const vert  = document.getElementById('scrub-vertical')?.value;
+    const state = document.getElementById('scrub-state')?.value;
+    const county = document.getElementById('scrub-county')?.value;
+    let q = 'phone_verified=eq.false&phone=not.is.null';
+    if (vert)   q += `&vertical=eq.${encodeURIComponent(vert)}`;
+    if (state)  q += `&state=eq.${encodeURIComponent(state)}`;
+    if (county) q += `&county=eq.${encodeURIComponent(county)}`;
+    const count = await SB.count('leads', q);
+    const batchSize = APP.settings.batchSize || 100;
+    wrap.innerHTML = `
+      <div class="flex-row" style="flex-wrap:wrap;gap:20px">
+        <div><div class="text-muted fs-12">Unverified records matching filters</div><div class="fs-16 fw-600">${fmtNum(count)}</div></div>
+        <div><div class="text-muted fs-12">Batch size</div><div class="fs-16 fw-600">${batchSize} records/batch</div></div>
+        <div><div class="text-muted fs-12">Auto-pulls batches until target reached</div><div class="fs-13 text-blue">✓ Stops when you hit your mobile target</div></div>
+      </div>`;
+    updateScrubEstimate();
+  } catch(e) {
+    wrap.innerHTML = `<p class="text-muted fs-13">Could not load availability: ${e.message}</p>`;
+  }
+}
+
+function updateScrubEstimate() {
+  const target = parseInt(document.getElementById('scrub-target')?.value) || 0;
+  const estWrap = document.getElementById('scrub-estimate');
+  if (!estWrap || !target) return;
+  const estLow = target * 2, estHigh = target * 3;
+  const batchSize = APP.settings.batchSize || 100;
+  setTxt('est-records', `~${fmtNum(estLow)} – ${fmtNum(estHigh)}`);
+  setTxt('est-cost', `$${(estLow*0.01).toFixed(2)} – $${(estHigh*0.01).toFixed(2)}`);
+  setTxt('est-batch', `${batchSize} records/batch`);
+  estWrap.style.display = '';
+}
+
+async function previewScrub() {
+  if (!APP.numverifyKey && !APP.demoMode) { showToast('Add your NumVerify API key in Settings first.', 'error'); return; }
+  const target = parseInt(document.getElementById('scrub-target')?.value) || 300;
+  const vert   = document.getElementById('scrub-vertical')?.value  || 'All Verticals';
+  const state  = document.getElementById('scrub-state')?.value     || 'All States';
+  const county = document.getElementById('scrub-county')?.value    || '';
+  const batchSize = APP.settings.batchSize || 100;
+  const estLow = target * 2, estHigh = target * 3;
+  const costLow = (estLow * 0.01).toFixed(2), costHigh = (estHigh * 0.01).toFixed(2);
+
+  document.getElementById('scrub-summary').innerHTML = `
+    <div class="row"><span>Target mobile numbers</span><span class="fw-600 text-success">${fmtNum(target)}</span></div>
+    <div class="row"><span>Batch size</span><span>${batchSize} records per batch</span></div>
+    <div class="row"><span>Estimated records to scrub</span><span class="text-warn">~${fmtNum(estLow)} – ${fmtNum(estHigh)}</span></div>
+    <div class="row"><span>Estimated cost at $0.01/call</span><span>$${costLow} – $${costHigh}</span></div>
+    <div class="row"><span>Vertical</span><span>${esc(vert)}</span></div>
+    <div class="row"><span>Geography</span><span>${esc(state)}${county ? ' / ' + esc(county) : ''}</span></div>
+  `;
+  goToScrubStep(2);
+}
+
+async function startScrub() {
+  APP.scrubAbort = false;
+  goToScrubStep(3);
+  const target    = parseInt(document.getElementById('scrub-target')?.value) || 300;
+  const vert      = document.getElementById('scrub-vertical')?.value;
+  const state     = document.getElementById('scrub-state')?.value;
+  const county    = document.getElementById('scrub-county')?.value;
+  const batchSize = APP.settings.batchSize || 100;
+
+  if (APP.demoMode) { await runDemoScrub(target); return; }
+  if (!APP.sbUrl || !APP.sbKey) { showToast('Configure Supabase in Settings.', 'error'); goToScrubStep(1); return; }
+
+  const sessionId = crypto.randomUUID();
+  let processed = 0, mobile = 0, landline = 0, voip = 0, unknown = 0, offset = 0;
+
+  const lbl = document.getElementById('scrub-progress-label');
+  if (lbl) lbl.textContent = `${esc(vert || 'All Verticals')} — ${esc(state || 'All States')}`;
+
+  while (mobile < target && !APP.scrubAbort) {
+    let q = `phone_verified=eq.false&phone=not.is.null&select=id,phone&limit=${batchSize}&offset=${offset}`;
+    if (vert)   q += `&vertical=eq.${encodeURIComponent(vert)}`;
+    if (state)  q += `&state=eq.${encodeURIComponent(state)}`;
+    if (county) q += `&county=eq.${encodeURIComponent(county)}`;
+
+    let batch;
+    try { batch = await SB.select('leads', q); }
+    catch(e) { showToast('Fetch error: ' + e.message, 'error'); break; }
+    if (!batch?.length) break;
+
+    for (const lead of batch) {
+      if (APP.scrubAbort || mobile >= target) break;
+      try {
+        const result = await numverifyCheck(lead.phone);
+        const type = result?.line_type || 'unknown';
+        await SB.update('leads', lead.id, {
+          phone_verified: true, phone_type: type,
+          phone_verified_at: new Date().toISOString(),
+          numverify_result: result,
+        });
+        if (type === 'mobile')    mobile++;
+        else if (type === 'landline') landline++;
+        else if (type === 'voip') voip++;
+        else unknown++;
+      } catch(e) { unknown++; }
+      processed++;
+      updateScrubUI(processed, mobile, landline, voip, unknown, target);
+    }
+    offset += batchSize;
+    if (batch.length < batchSize) break;
+  }
+
+  try {
+    await SB.insert('scrub_sessions', [{
+      id: sessionId, vertical: vert, state, county,
+      target_mobile: target, records_processed: processed,
+      mobile_found: mobile, landline_found: landline,
+      voip_found: voip, unknown_found: unknown,
+      credits_used: processed, completed: true,
+      completed_at: new Date().toISOString(),
+    }]);
+  } catch(e) { console.warn('Session log failed', e); }
+
+  showScrubComplete({ processed, mobile, landline, voip, unknown });
+}
+
+function updateScrubUI(processed, mobile, landline, voip, unknown, target) {
+  const pct = Math.min(Math.round((mobile / target) * 100), 100);
+  const bar = document.getElementById('scrub-progress-bar');
+  if (bar) bar.style.width = pct + '%';
+  setTxt('sp-mobile',  fmtNum(mobile));
+  setTxt('sp-land',    fmtNum(landline));
+  setTxt('sp-voip',    fmtNum(voip));
+  setTxt('sp-unknown', fmtNum(unknown));
+  setTxt('sp-credits', fmtNum(processed));
+  const tl = document.getElementById('scrub-target-label');
+  if (tl) tl.textContent = `Mobile found: ${fmtNum(mobile)} of ${fmtNum(target)} target`;
+}
+
+async function runDemoScrub(target) {
+  let mobile = 0, landline = 0, voip = 0, unknown = 0, processed = 0;
+  const total = Math.round(target * 2.8);
+  for (let i = 0; i < total; i += 10) {
+    await sleep(80);
+    if (APP.scrubAbort) break;
+    processed = Math.min(i + 10, total);
+    mobile    = Math.round(processed * 0.29);
+    landline  = Math.round(processed * 0.49);
+    voip      = Math.round(processed * 0.1);
+    unknown   = processed - mobile - landline - voip;
+    updateScrubUI(processed, Math.min(mobile, target), landline, voip, unknown, target);
+    if (mobile >= target) break;
+  }
+  showScrubComplete({ processed, mobile: Math.min(mobile, target), landline, voip, unknown });
+}
+
+function showScrubComplete(s) {
+  document.getElementById('scrub-complete-summary').innerHTML = `
+    <div class="row"><span>Total records scrubbed</span><span>${fmtNum(s.processed)}</span></div>
+    <div class="row"><span>Mobile confirmed ✓</span><span class="text-success fw-600">${fmtNum(s.mobile)}</span></div>
+    <div class="row"><span>Landline 🔴</span><span class="text-danger">${fmtNum(s.landline)}</span></div>
+    <div class="row"><span>VoIP / Other 🟡</span><span class="text-warn">${fmtNum(s.voip)}</span></div>
+    <div class="row"><span>Unknown ⚪</span><span class="text-muted">${fmtNum(s.unknown)}</span></div>
+    <div class="row"><span>Credits used</span><span>${fmtNum(s.processed)}</span></div>
+  `;
+  goToScrubStep(4);
+  showToast(`✓ Scrub complete — ${fmtNum(s.mobile)} mobile numbers confirmed`, 'success');
+}
+
+function stopScrub() { APP.scrubAbort = true; showToast('Scrub stopped.', 'warn'); }
+
+async function numverifyCheck(phone) {
+  const cleaned = normalizePhone(phone);
+  const url = `http://apilayer.net/api/validate?access_key=${APP.numverifyKey}&number=${cleaned}&country_code=US&format=1`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('NumVerify API error');
+  return res.json();
+}
+
+async function loadScrubHistory() {
+  const wrap = document.getElementById('scrub-history-wrap');
+  if (!wrap) return;
+  if (!APP.sbUrl || !APP.sbKey) { wrap.innerHTML = `<p class="text-muted fs-13">Connect Supabase to see scrub history.</p>`; return; }
+  try {
+    const rows = await SB.select('scrub_sessions', 'order=created_at.desc&limit=10');
+    if (!rows?.length) { wrap.innerHTML = `<div class="empty-state" style="padding:30px"><p>No scrub sessions yet.</p></div>`; return; }
+    wrap.innerHTML = `<table class="data-table"><thead><tr><th>Date</th><th>Vertical</th><th>State</th><th>Scrubbed</th><th>Mobile Found</th><th>Credits Used</th></tr></thead><tbody>` +
+      rows.map(r => `<tr>
+        <td class="muted">${fmtDate(r.created_at)}</td>
+        <td>${esc(r.vertical || 'All')}</td>
+        <td>${esc(r.state || 'All')}</td>
+        <td>${fmtNum(r.records_processed)}</td>
+        <td class="text-success fw-600">${fmtNum(r.mobile_found)}</td>
+        <td class="text-muted">${fmtNum(r.credits_used)}</td>
+      </tr>`).join('') + `</tbody></table>`;
+  } catch(e) {
+    wrap.innerHTML = `<p class="text-muted fs-13">Could not load scrub history.</p>`;
+  }
+}
+
+function goToScrubStep(n) {
+  [1,2,3,4].forEach(i => {
+    const el = document.getElementById('scrub-step-' + i);
+    if (el) el.classList.toggle('hidden', i !== n);
+  });
+}
+
+/* ================================================================
+   EXPORT — REP TAGGING + BATCH CONTROL
+   ================================================================ */
+
+// In-memory rep list (persisted to localStorage)
+let REPS = [];
+
+function loadReps() {
+  try { REPS = JSON.parse(localStorage.getItem('llf2_reps') || '[]'); }
+  catch(e) { REPS = []; }
+}
+
+function saveReps() {
+  try { localStorage.setItem('llf2_reps', JSON.stringify(REPS)); }
+  catch(e) { /* silent */ }
+}
+
+function addRepToList(name) {
+  if (!name || REPS.includes(name)) return;
+  REPS.push(name);
+  saveReps();
+}
+
+function loadExportPage() {
+  loadReps();
+  populateVerticalSelects();
+  populateRepDropdown();
+  loadExportDbStatus();
+  loadExportHistory();
+}
+
+function populateRepDropdown() {
+  const sel = document.getElementById('export-rep');
+  if (!sel) return;
+  sel.innerHTML = `<option value="">— Select rep —</option>
+    <option value="__self__">Myself (${APP.user || 'Rob'})</option>
+    ${REPS.map(r => `<option value="${esc(r)}">${esc(r)}</option>`).join('')}
+    <option value="__new__">+ Add new rep…</option>`;
+}
+
+function handleRepSelect() {
+  const sel = document.getElementById('export-rep');
+  const newInput = document.getElementById('export-rep-new');
+  if (!sel || !newInput) return;
+  if (sel.value === '__new__') {
+    newInput.classList.remove('hidden');
+    newInput.focus();
+  } else {
+    newInput.classList.add('hidden');
+  }
+  updateExportLabel();
+  updateExportDownloadBtn();
+}
+
+function getSelectedRep() {
+  const sel = document.getElementById('export-rep');
+  const newInput = document.getElementById('export-rep-new');
+  if (!sel) return '';
+  if (sel.value === '__self__') return APP.user || 'Rob';
+  if (sel.value === '__new__') return newInput?.value?.trim() || '';
+  return sel.value;
+}
+
+function updateExportLabel() {
+  const rep    = getSelectedRep();
+  const vert   = document.getElementById('export-vertical')?.value || 'All Verticals';
+  const state  = document.getElementById('export-state')?.value   || '';
+  const date   = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  const lbl    = document.getElementById('export-batch-label');
+  if (lbl && rep) {
+    lbl.value = `${rep} — ${vert}${state ? ' / ' + state : ''} — ${date}`;
+  }
+  updateExportDownloadBtn();
+}
+
+function updateExportDownloadBtn() {
+  const btn = document.getElementById('export-download-btn');
+  if (!btn) return;
+  const rep   = getSelectedRep();
+  const count = document.getElementById('export-count')?.value;
+  const ready = rep && (count || document.getElementById('export-count')?.dataset.allMode === 'true');
+  btn.disabled = !ready;
+}
+
+function updateExportCount() {
+  const input = document.getElementById('export-count');
+  const lbl   = document.getElementById('export-count-label');
+  const fresh = parseInt(document.getElementById('exp-db-fresh')?.textContent?.replace(/,/g,'')) || 0;
+  if (!input || !lbl) return;
+  const n = parseInt(input.value);
+  if (!n) { lbl.textContent = 'Enter a number above'; }
+  else if (n >= fresh) { lbl.textContent = `All ${fmtNum(fresh)} available records`; }
+  else { lbl.textContent = `${fmtNum(n)} of ${fmtNum(fresh)} available records`; }
+  updateExportDownloadBtn();
+}
+
+function setExportAll() {
+  const fresh = parseInt(document.getElementById('exp-db-fresh')?.textContent?.replace(/,/g,'')) || 0;
+  const input = document.getElementById('export-count');
+  if (input) { input.value = fresh; input.dataset.allMode = 'true'; }
+  updateExportCount();
+  updateExportDownloadBtn();
+}
+
+async function loadExportDbStatus() {
+  if (APP.demoMode) {
+    setTxt('exp-db-total',    fmtNum(DEMO.stats.total));
+    setTxt('exp-db-mobile',   fmtNum(DEMO.stats.mobile));
+    setTxt('exp-db-exported', fmtNum(150));
+    setTxt('exp-db-fresh',    fmtNum(DEMO.stats.mobile - 150));
+    return;
+  }
+  if (!APP.sbUrl || !APP.sbKey) return;
+  try {
+    const [total, mobile, exported] = await Promise.all([
+      SB.count('leads'),
+      SB.count('leads', 'phone_type=eq.mobile'),
+      SB.count('leads', 'phone_type=eq.mobile&export_count=gt.0'),
+    ]);
+    const fresh = mobile - exported;
+    setTxt('exp-db-total',    fmtNum(total));
+    setTxt('exp-db-mobile',   fmtNum(mobile));
+    setTxt('exp-db-exported', fmtNum(exported));
+    setTxt('exp-db-fresh',    fmtNum(Math.max(0, fresh)));
+  } catch(e) { /* silent */ }
+}
+
+async function refreshExportPool() {
+  updateExportLabel();
+  const wrap = document.getElementById('export-pool-status');
+  if (!wrap) return;
+  if (!APP.sbUrl || !APP.sbKey) {
+    wrap.innerHTML = `<p class="text-muted fs-13">Connect Supabase to see pool stats.</p>`;
+    return;
+  }
+  wrap.innerHTML = `<div class="loading-center" style="padding:12px"><div class="spinner"></div></div>`;
+  try {
+    const vert    = document.getElementById('export-vertical')?.value;
+    const state   = document.getElementById('export-state')?.value;
+    const county  = document.getElementById('export-county')?.value;
+    const inclPrev = document.getElementById('export-include-prev')?.checked;
+
+    let baseQ = 'phone_type=eq.mobile';
+    if (vert)   baseQ += `&vertical=eq.${encodeURIComponent(vert)}`;
+    if (state)  baseQ += `&state=eq.${encodeURIComponent(state)}`;
+    if (county) baseQ += `&county=eq.${encodeURIComponent(county)}`;
+
+    const [totalMobile, alreadyExported] = await Promise.all([
+      SB.count('leads', baseQ),
+      SB.count('leads', baseQ + '&export_count=gt.0'),
+    ]);
+    const fresh = totalMobile - alreadyExported;
+
+    wrap.innerHTML = `
+      <div class="pool-row"><span>Mobile confirmed matching filters</span><span class="fw-600 text-success">${fmtNum(totalMobile)}</span></div>
+      <div class="pool-row"><span>Already exported to reps</span><span class="fw-600 text-warn">${fmtNum(alreadyExported)}</span></div>
+      <div class="pool-row"><span>Fresh / never exported ${inclPrev ? '(override on)' : ''}</span><span class="fw-600 text-blue">${inclPrev ? fmtNum(totalMobile) : fmtNum(Math.max(0,fresh))}</span></div>
+    `;
+    // Update the fresh count so setExportAll knows how many there are
+    setTxt('exp-db-fresh', fmtNum(Math.max(0, fresh)));
+  } catch(e) {
+    wrap.innerHTML = `<p class="text-muted fs-13">Could not load pool: ${e.message}</p>`;
+  }
+}
+
+async function previewExport() {
+  if (!APP.sbUrl || !APP.sbKey) { showToast('Configure Supabase first.', 'error'); return; }
+  const card = document.getElementById('export-preview-card');
+  const wrap = document.getElementById('export-preview-wrap');
+  if (card) card.classList.remove('hidden');
+  if (wrap) wrap.innerHTML = '<div class="loading-center" style="padding:12px"><div class="spinner"></div></div>';
+
+  try {
+    const rows = await buildExportQuery(5);
+    setTxt('export-preview-count', `(first ${rows.length} of your selection)`);
+    if (!rows.length) { if (wrap) wrap.innerHTML = '<p class="text-muted fs-13">No records match these filters.</p>'; return; }
+    if (wrap) wrap.innerHTML = ['Business Name,Contact,Phone,City,State']
+      .concat(rows.map(r => `${r.business_name||''},${r.contact_name||''},${r.phone||''},${r.city||''},${r.state||''}`))
+      .join('\n');
+  } catch(e) {
+    if (wrap) wrap.innerHTML = `<p class="text-muted fs-13">Preview failed: ${e.message}</p>`;
+  }
+}
+
+async function buildExportQuery(limit) {
+  const vert     = document.getElementById('export-vertical')?.value;
+  const state    = document.getElementById('export-state')?.value;
+  const county   = document.getElementById('export-county')?.value;
+  const inclPrev = document.getElementById('export-include-prev')?.checked;
+  const count    = parseInt(document.getElementById('export-count')?.value) || 0;
+
+  let q = 'phone_type=eq.mobile&select=id,business_name,contact_name,phone,city,state,vertical,email,website,county';
+  if (!inclPrev) q += '&export_count=eq.0';
+  if (vert)   q += `&vertical=eq.${encodeURIComponent(vert)}`;
+  if (state)  q += `&state=eq.${encodeURIComponent(state)}`;
+  if (county) q += `&county=eq.${encodeURIComponent(county)}`;
+  q += `&limit=${limit || count || 100}`;
+
+  return APP.demoMode ? generateDemoExportRows(limit || 5) : SB.select('leads', q);
+}
+
+function generateDemoExportRows(n) {
+  return Array.from({length:n}, (_,i) => ({
+    id: crypto.randomUUID(),
+    business_name: `Demo Business ${i+1}`,
+    contact_name: ['Brian Williams','Sarah Jenkins','Mike Okafor','Jay Thompson','Lisa Brown'][i%5],
+    phone: `248-555-0${100+i}`,
+    city: ['Troy','Auburn Hills','Royal Oak'][i%3],
+    state: 'Michigan',
+    vertical: 'Power Washing',
+    email: `contact${i}@demo.com`,
+  }));
+}
+
+async function runExport() {
+  const rep        = getSelectedRep();
+  const batchLabel = document.getElementById('export-batch-label')?.value?.trim();
+  const format     = document.getElementById('export-format')?.value;
+  const countVal   = parseInt(document.getElementById('export-count')?.value) || 0;
+
+  if (!rep)        { showToast('Select a rep to assign this export to.', 'warn'); return; }
+  if (!batchLabel) { showToast('Add a batch label so you can find this export later.', 'warn'); return; }
+  if (!countVal)   { showToast('Enter how many records you want to export.', 'warn'); return; }
+  if (!APP.demoMode && (!APP.sbUrl || !APP.sbKey)) { showToast('Configure Supabase in Settings.', 'error'); return; }
+
+  const btn = document.getElementById('export-download-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Preparing…'; }
+
+  try {
+    const rows = await buildExportQuery(countVal);
+    if (!rows.length) { showToast('No records match these filters.', 'warn'); return; }
+
+    // Build CSV
+    let csv;
+    if (format === 'fieldpal') {
+      csv = 'Business Name,Contact Name,Phone,City,State,Email\n' +
+        rows.map(r => [r.business_name,r.contact_name,r.phone,r.city,r.state,r.email].map(csvEsc).join(',')).join('\n');
+    } else {
+      const fields = ['business_name','contact_name','phone','email','website','city','county','state','vertical'];
+      csv = fields.join(',') + '\n' +
+        rows.map(r => fields.map(f => csvEsc(r[f])).join(',')).join('\n');
+    }
+
+    // Filename: rep-name-date.csv
+    const safeRep = rep.replace(/[^a-zA-Z0-9]/g,'-').toLowerCase();
+    const safeDate = new Date().toISOString().slice(0,10);
+    downloadCSV(csv, `${safeRep}-${safeDate}-${rows.length}leads.csv`);
+
+    // Tag records in DB as exported
+    if (!APP.demoMode && APP.sbUrl && APP.sbKey) {
+      const ids = rows.map(r => r.id).filter(Boolean);
+      // Update in chunks of 50
+      for (let i = 0; i < ids.length; i += 50) {
+        const chunk = ids.slice(i, i+50);
+        // Supabase: update where id in (...)
+        await fetch(`${APP.sbUrl}/rest/v1/leads?id=in.(${chunk.join(',')})`, {
+          method: 'PATCH',
+          headers: SB.headers(),
+          body: JSON.stringify({
+            export_count: 1, // will increment; for now sets to 1
+            last_exported_at: new Date().toISOString(),
+            last_exported_to: rep,
+            status: 'exported',
+          }),
+        }).catch(e => console.warn('Tag update failed', e));
+      }
+    }
+
+    // Add rep to saved list
+    if (rep !== APP.user) addRepToList(rep);
+    populateRepDropdown();
+
+    // Log to export_logs (localStorage since no separate table yet)
+    const logs = JSON.parse(localStorage.getItem('llf2_export_logs') || '[]');
+    logs.unshift({
+      date: new Date().toISOString(),
+      rep, batchLabel,
+      count: rows.length,
+      vertical: document.getElementById('export-vertical')?.value || 'All',
+      state: document.getElementById('export-state')?.value || 'All',
+    });
+    localStorage.setItem('llf2_export_logs', JSON.stringify(logs.slice(0, 100)));
+
+    showToast(`✓ ${fmtNum(rows.length)} records exported to ${rep}`, 'success');
+    loadExportHistory();
+    loadExportDbStatus();
+    refreshExportPool();
+  } catch(e) {
+    showToast('Export failed: ' + e.message, 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '📤 Download & Tag'; }
+  }
+}
+
+async function loadExportHistory() {
+  const wrap = document.getElementById('export-history-wrap');
+  if (!wrap) return;
+  const logs = JSON.parse(localStorage.getItem('llf2_export_logs') || '[]');
+  if (!logs.length) {
+    wrap.innerHTML = `<div class="empty-state" style="padding:30px"><div class="empty-icon">📂</div><h3>No exports yet</h3><p>Every batch you download will be logged here — rep name, date, count, and filters.</p></div>`;
+    return;
+  }
+  wrap.innerHTML = `<table class="data-table"><thead><tr><th>Date</th><th>Batch Label</th><th>Rep</th><th>Vertical</th><th>State</th><th>Records</th></tr></thead><tbody>` +
+    logs.map(l => `<tr>
+      <td class="muted no-wrap">${fmtDate(l.date)}</td>
+      <td class="fw-600">${esc(l.batchLabel)}</td>
+      <td><span class="badge badge-blue">${esc(l.rep)}</span></td>
+      <td>${esc(l.vertical)}</td>
+      <td>${esc(l.state)}</td>
+      <td class="fw-600 text-success">${fmtNum(l.count)}</td>
+    </tr>`).join('') + `</tbody></table>`;
+}
+
+/* ================================================================
+   LEAD FINDER — SEARCH
+   ================================================================ */
+let searchActive = false;
+
+function toggleSource(tile) {
+  const cb = tile.querySelector('input[type="checkbox"]');
+  if (!cb) return;
+  cb.checked = !cb.checked;
+  tile.classList.toggle('selected', cb.checked);
+}
+
+async function runSearch() {
+  if (searchActive) { showToast('Search already running.', 'warn'); return; }
+  const vertEls   = document.querySelectorAll('#search-verticals input:checked');
+  const verticals = Array.from(vertEls).map(el => el.value).filter(Boolean);
+  if (!verticals.length) { showToast('Select at least one vertical.', 'warn'); return; }
+
+  const state   = document.getElementById('search-state')?.value;
+  const county  = document.getElementById('search-county')?.value || '';
+  const city    = document.getElementById('search-city')?.value   || '';
+  const target  = parseInt(document.getElementById('search-target')?.value) || 500;
+
+  const sources = [];
+  if (document.querySelector('#search-sources .source-tile:nth-child(1) input')?.checked) sources.push('DuckDuckGo');
+  if (document.querySelector('#search-sources .source-tile:nth-child(2) input')?.checked) sources.push('Google Maps');
+  if (document.querySelector('#search-sources .source-tile:nth-child(3) input')?.checked) sources.push('Yahoo');
+  if (document.querySelector('#search-sources .source-tile:nth-child(4) input')?.checked) sources.push('Yelp');
+  if (!sources.length) { showToast('Select at least one search source.', 'warn'); return; }
+
+  if (!APP.scraperKey) { showToast('Add your ScraperAPI key in Settings first.', 'error'); return; }
+
+  searchActive = true;
+  APP.searchAbort = false;
+  const card = document.getElementById('search-progress-card');
+  if (card) card.classList.remove('hidden');
+  setTxt('search-progress-title', `Searching ${verticals.join(', ')} in ${state}…`);
+
+  let found = 0;
+  for (const source of sources) {
+    if (APP.searchAbort) break;
+    for (const vert of verticals) {
+      if (APP.searchAbort || found >= target) break;
+      setTxt('search-progress-label', `Searching ${source} for ${vert} in ${county || state}…`);
+      const results = APP.demoMode
+        ? generateDemoSearchResults(vert, state, county || city, source, Math.min(10, target - found))
+        : await scrapeSource(source, vert, state, county, city, target - found);
+      for (const r of results) {
+        if (found >= target || APP.searchAbort) break;
+        APP.stagingData.push({ ...r, source: source + ' — ' + state, vertical: vert, status: 'pending' });
+        found++;
+      }
+      const pct = Math.round((found / target) * 100);
+      const bar = document.getElementById('search-progress-bar');
+      if (bar) bar.style.width = Math.min(pct, 100) + '%';
+    }
+  }
+
+  searchActive = false;
+  updateStagingBadge();
+  showToast(`✓ Found ${fmtNum(found)} records — ready in Staging Area`, 'success');
+  if (card) card.classList.add('hidden');
+  navigate('staging');
+}
+
+function stopSearch() { APP.searchAbort = true; searchActive = false; showToast('Search stopped.', 'warn'); }
+
+async function scrapeSource(source, vertical, state, county, city, limit) {
+  // ScraperAPI + DuckDuckGo search
+  const geo = city || county || state;
+  const query = encodeURIComponent(`${vertical} contractor ${geo} phone number`);
+  const scraperUrl = `https://api.scraperapi.com/?api_key=${APP.scraperKey}&url=https://html.duckduckgo.com/html/?q=${query}&render=false`;
+  try {
+    const res = await fetch(scraperUrl);
+    if (!res.ok) throw new Error('ScraperAPI error ' + res.status);
+    const html = await res.text();
+    return parseDDGResults(html, vertical, state, source);
+  } catch(e) {
+    console.warn('Scrape error:', e);
+    return [];
+  }
+}
+
+function parseDDGResults(html, vertical, state, source) {
+  // Basic extraction from DuckDuckGo HTML
+  const results = [];
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+  const items = doc.querySelectorAll('.result');
+  items.forEach(item => {
+    const titleEl = item.querySelector('.result__title a');
+    const snippetEl = item.querySelector('.result__snippet');
+    if (!titleEl) return;
+    const biz = titleEl.textContent.trim();
+    const snippet = snippetEl?.textContent || '';
+    const phone = extractPhone(snippet);
+    results.push({ business_name: biz, phone, city: '', state, vertical, source });
+  });
+  return results.slice(0, 10);
+}
+
+function generateDemoSearchResults(vert, state, area, source, count) {
+  const firstNames = ['Brian','Mike','Sarah','Jay','Chris','Lisa','Tom','Karen','Dave','Amy','James','Maria'];
+  const lastNames  = ['Williams','Johnson','Thompson','Okafor','Jenkins','Sullivan','Brown','Davis','Martinez','Kim'];
+  const bizSuffixes = ['Pro','Plus','LLC','Services','Solutions','Co','Group','Experts','Team','Works'];
+  const areaCodes = getAreaCodesForState(state);
+  const results = [];
+  for (let i = 0; i < count; i++) {
+    const fn  = firstNames[Math.floor(Math.random() * firstNames.length)];
+    const ln  = lastNames[Math.floor(Math.random() * lastNames.length)];
+    const sfx = bizSuffixes[Math.floor(Math.random() * bizSuffixes.length)];
+    const ac  = areaCodes[Math.floor(Math.random() * areaCodes.length)];
+    const phone = `${ac}-555-${String(1000 + Math.floor(Math.random() * 8999)).substring(1)}`;
+    results.push({
+      business_name: `${fn}'s ${vert} ${sfx}`,
+      contact_name: `${fn} ${ln}`,
+      phone, city: area || state, state,
+      email: `${fn.toLowerCase()}@${ln.toLowerCase()}${sfx.toLowerCase()}.com`,
+    });
+  }
+  return results;
+}
+
+/* ================================================================
+   ASSOCIATIONS MODULE
+   ================================================================ */
+async function runAssociationSearch() {
+  const vertEls = document.querySelectorAll('#assoc-verticals input:checked');
+  const verts   = Array.from(vertEls).map(el => el.value).filter(Boolean);
+  if (!verts.length) { showToast('Select at least one vertical.', 'warn'); return; }
+  const state = document.getElementById('assoc-state')?.value;
+  const depth = document.getElementById('assoc-depth')?.value || '1';
+
+  const card = document.getElementById('assoc-progress-card');
+  if (card) card.classList.remove('hidden');
+  setTxt('assoc-progress-label', `Searching ${state} associations for ${verts.join(', ')}…`);
+  const bar = document.getElementById('assoc-progress-bar');
+
+  const results = [];
+  for (let i = 0; i < verts.length; i++) {
+    if (bar) bar.style.width = Math.round(((i+1)/verts.length)*100) + '%';
+    const assocs = APP.demoMode
+      ? getDemoAssociations(verts[i], state)
+      : await scrapeAssociations(verts[i], state, depth);
+    results.push(...assocs);
+  }
+
+  if (card) card.classList.add('hidden');
+
+  const wrap = document.getElementById('assoc-results');
+  const list = document.getElementById('assoc-results-list');
+  setTxt('assoc-results-title', `Associations Found — ${verts.join(', ')} / ${state} (${results.length})`);
+  list.innerHTML = results.length ? results.map(a => renderAssocCard(a)).join('') :
+    `<div class="empty-state card"><div class="empty-icon">🏢</div><h3>No associations found</h3><p>Try broadening your search or selecting a different state.</p></div>`;
+  wrap.classList.remove('hidden');
+}
+
+function renderAssocCard(a) {
+  return `<div class="card mb-16">
+    <h3 class="mb-8">${esc(a.name)}</h3>
+    <div class="flex-col gap-8 fs-14">
+      ${a.website ? `<div><span class="text-muted">Website:</span> <a href="${esc(a.website)}" target="_blank" style="color:var(--blue)">${esc(a.website)}</a></div>` : ''}
+      ${a.director ? `<div><span class="text-muted">Director:</span> ${esc(a.director)}</div>` : ''}
+      ${a.phone    ? `<div><span class="text-muted">Phone:</span> ${esc(a.phone)}</div>` : ''}
+      ${a.email    ? `<div><span class="text-muted">Email:</span> ${esc(a.email)}</div>` : ''}
+      ${a.members  ? `<div><span class="text-muted">Members:</span> ~${fmtNum(a.members)}</div>` : ''}
+    </div>
+    <div class="flex-row mt-16">
+      <button class="btn btn-secondary btn-sm" onclick="saveAssociation(${JSON.stringify(a).replace(/"/g,'&quot;')})">Save Association</button>
+      ${a.website ? `<a class="btn btn-ghost btn-sm" href="${esc(a.website)}" target="_blank">Visit Website</a>` : ''}
+    </div>
+  </div>`;
+}
+
+function getDemoAssociations(vert, state) {
+  return [
+    { name: `${state} ${vert} Professionals Association`, website: `www.${state.toLowerCase()}${vert.toLowerCase().replace(/\s/g,'')}.org`, director: 'James Kowalski', phone: '248-555-0142', email: `info@${state.toLowerCase()}${vert.toLowerCase().replace(/\s/g,'')}.org`, members: Math.floor(Math.random()*300)+100 },
+    { name: `United ${vert} Contractors — ${state} Chapter`, website: `www.u${vert.toLowerCase().replace(/\s/g,'')}-${state.toLowerCase()}.org`, director: 'Sandra Okafor', phone: '313-555-0287', email: 'info@assoc.org', members: Math.floor(Math.random()*150)+50 },
+  ];
+}
+
+async function scrapeAssociations(vert, state, depth) {
+  if (!APP.scraperKey) return [];
+  const query = encodeURIComponent(`"${vert}" association "${state}" contractor directory`);
+  try {
+    const res = await fetch(`https://api.scraperapi.com/?api_key=${APP.scraperKey}&url=https://html.duckduckgo.com/html/?q=${query}&render=false`);
+    if (!res.ok) return [];
+    const html = await res.text();
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    const items = doc.querySelectorAll('.result');
+    return Array.from(items).slice(0, 3).map(item => ({
+      name: item.querySelector('.result__title')?.textContent?.trim() || 'Unknown',
+      website: item.querySelector('.result__url')?.textContent?.trim() || '',
+    }));
+  } catch(e) { return []; }
+}
+
+async function saveAssociation(a) {
+  if (!APP.sbUrl || !APP.sbKey) { showToast('Configure Supabase first.', 'error'); return; }
+  try {
+    await SB.insert('associations', [{
+      association_name: a.name, website: a.website, vertical: a.vertical,
+      state: a.state, director_name: a.director, director_phone: a.phone,
+      director_email: a.email, member_count: a.members,
+    }]);
+    showToast('Association saved ✓', 'success');
+  } catch(e) { showToast('Save failed: ' + e.message, 'error'); }
+}
+
+/* ================================================================
+   NETWORKING GROUPS
+   ================================================================ */
+async function runNetworkingSearch() {
+  const state  = document.getElementById('net-state')?.value;
+  const county = document.getElementById('net-county')?.value || '';
+  const types  = [];
+  if (document.getElementById('gt-bni')?.checked)     types.push('BNI');
+  if (document.getElementById('gt-chamber')?.checked) types.push('Chamber');
+  if (document.getElementById('gt-trade')?.checked)   types.push('Trade');
+  if (document.getElementById('gt-re')?.checked)      types.push('Real Estate');
+  if (document.getElementById('gt-biz')?.checked)     types.push('Business Owner');
+  if (document.getElementById('gt-other')?.checked)   types.push('Other');
+  if (!types.length) { showToast('Select at least one group type.', 'warn'); return; }
+
+  const results = APP.demoMode ? getDemoNetworking(state, county, types) : await scrapeNetworking(state, county, types);
+
+  const wrap = document.getElementById('net-results');
+  const list = document.getElementById('net-results-list');
+  setTxt('net-results-title', `Networking Groups — ${county || state} (${results.length})`);
+  list.innerHTML = results.length ? results.map(g => renderGroupCard(g)).join('') :
+    `<div class="empty-state card"><div class="empty-icon">🤝</div><h3>No groups found</h3><p>Try a different county or group type.</p></div>`;
+  wrap.classList.remove('hidden');
+}
+
+function renderGroupCard(g) {
+  return `<div class="card mb-16">
+    <h3 class="mb-8">${esc(g.name)}</h3>
+    <div class="flex-col gap-8 fs-14">
+      ${g.type     ? `<div><span class="badge badge-blue">${esc(g.type)}</span></div>` : ''}
+      ${g.meets    ? `<div><span class="text-muted">Meets:</span> ${esc(g.meets)}</div>` : ''}
+      ${g.location ? `<div><span class="text-muted">Location:</span> ${esc(g.location)}</div>` : ''}
+      ${g.contact  ? `<div><span class="text-muted">Contact:</span> ${esc(g.contact)}</div>` : ''}
+      ${g.phone    ? `<div><span class="text-muted">Phone:</span> ${esc(g.phone)}</div>` : ''}
+    </div>
+    <div class="flex-row mt-16">
+      <button class="btn btn-secondary btn-sm" onclick="saveNetworkGroup(${JSON.stringify(g).replace(/"/g,'&quot;')})">Save Group</button>
+      ${g.website ? `<a class="btn btn-ghost btn-sm" href="${esc(g.website)}" target="_blank">Visit Website</a>` : ''}
+    </div>
+  </div>`;
+}
+
+function getDemoNetworking(state, county, types) {
+  const area = county || state;
+  return [
+    { name: `BNI — ${area} Chapter`, type:'BNI', meets:'Tuesdays 7:00 AM', location:`${area} Marriott`, contact:'Mark Sullivan (President)', phone: getAreaCodesForState(state)[0] + '-555-0391', email:'chapter@bni.com', website:'https://bni.com' },
+    { name: `${area} Chamber of Commerce`, type:'Chamber', meets:'Monthly mixers', location:`${area} City Hall`, contact:'Jennifer Obi (Director)', phone: getAreaCodesForState(state)[0] + '-555-0244', email:'info@chamber.com', website:'https://chamber.com' },
+  ];
+}
+
+async function scrapeNetworking(state, county, types) {
+  if (!APP.scraperKey) return [];
+  const geo = county || state;
+  const query = encodeURIComponent(`BNI chapter "${geo}" networking business group`);
+  try {
+    const res = await fetch(`https://api.scraperapi.com/?api_key=${APP.scraperKey}&url=https://html.duckduckgo.com/html/?q=${query}&render=false`);
+    if (!res.ok) return [];
+    const html = await res.text();
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    return Array.from(doc.querySelectorAll('.result')).slice(0, 4).map(item => ({
+      name: item.querySelector('.result__title')?.textContent?.trim() || 'Unknown',
+      type: types[0] || 'Other',
+      website: item.querySelector('.result__url')?.textContent?.trim() || '',
+    }));
+  } catch(e) { return []; }
+}
+
+async function saveNetworkGroup(g) {
+  if (!APP.sbUrl || !APP.sbKey) { showToast('Configure Supabase first.', 'error'); return; }
+  try {
+    await SB.insert('networking_groups', [{
+      group_name: g.name, group_type: g.type, meeting_day: g.meets,
+      location_name: g.location, contact_name: g.contact,
+      contact_phone: g.phone, contact_email: g.email, website: g.website,
+      state: document.getElementById('net-state')?.value,
+      county: document.getElementById('net-county')?.value,
+    }]);
+    showToast('Networking group saved ✓', 'success');
+  } catch(e) { showToast('Save failed: ' + e.message, 'error'); }
+}
+
+/* ================================================================
+   STAGING AREA
+   ================================================================ */
+function renderStaging() {
+  const empty   = document.getElementById('staging-empty');
+  const content = document.getElementById('staging-content');
+  const pending = APP.stagingData.filter(r => r.status === 'pending');
+  if (!pending.length) {
+    empty?.classList.remove('hidden');
+    content?.classList.add('hidden');
+    return;
+  }
+  empty?.classList.add('hidden');
+  content?.classList.remove('hidden');
+  const rows = document.getElementById('staging-rows');
+  rows.innerHTML = pending.map((r, i) => `
+    <div class="staging-row">
+      <input type="checkbox" checked onchange="updateStagingCount()">
+      <div class="sr-info">
+        <div class="sr-biz">${esc(r.business_name || '—')}</div>
+        <div class="sr-meta">${esc(r.contact_name||'')}${r.contact_name&&r.phone?'  ·  ':''}${esc(r.phone||'')}${r.phone&&r.city?'  ·  ':''}${esc(r.city||'')}${r.city&&r.state?', ':' '}${esc(r.state||'')}</div>
+      </div>
+      ${!r.contact_name ? '<span class="badge badge-warn">No contact name</span>' : ''}
+    </div>`).join('');
+
+  populateVerticalSelects();
+  const srcEl = document.getElementById('staging-source');
+  if (srcEl) srcEl.value = pending[0]?.source || '';
+  updateStagingCount();
+  updateStagingBadge();
+}
+
+function updateStagingCount() {
+  const checked = document.querySelectorAll('#staging-rows input[type=checkbox]:checked').length;
+  setTxt('staging-selected-count', `${checked} selected`);
+  const btn = document.getElementById('staging-import-btn');
+  if (btn) btn.textContent = `✓ Import ${checked} Records to Database`;
+}
+
+function updateStagingBadge() {
+  const count = APP.stagingData.filter(r => r.status === 'pending').length;
+  const badge = document.getElementById('staging-badge');
+  if (badge) {
+    badge.textContent = count;
+    badge.style.display = count > 0 ? '' : 'none';
+  }
+}
+
+function selectAllStaging()   { document.querySelectorAll('#staging-rows input[type=checkbox]').forEach(cb => cb.checked = true);  updateStagingCount(); }
+function deselectAllStaging() { document.querySelectorAll('#staging-rows input[type=checkbox]').forEach(cb => cb.checked = false); updateStagingCount(); }
+
+function deleteSelectedStaging() {
+  const rows = document.querySelectorAll('#staging-rows .staging-row');
+  const pending = APP.stagingData.filter(r => r.status === 'pending');
+  rows.forEach((row, i) => {
+    const cb = row.querySelector('input[type=checkbox]');
+    if (cb?.checked && pending[i]) pending[i].status = 'rejected';
+  });
+  renderStaging();
+  showToast('Selected records removed from staging.', 'success');
+}
+
+async function importStaging() {
+  const rows = document.querySelectorAll('#staging-rows .staging-row');
+  const pending = APP.stagingData.filter(r => r.status === 'pending');
+  const selected = [];
+  rows.forEach((row, i) => {
+    const cb = row.querySelector('input[type=checkbox]');
+    if (cb?.checked && pending[i]) selected.push(pending[i]);
+  });
+  if (!selected.length) { showToast('No records selected.', 'warn'); return; }
+  if (!APP.sbUrl || !APP.sbKey) { showToast('Configure Supabase in Settings.', 'error'); return; }
+
+  const vert = document.getElementById('staging-vertical')?.value;
+  const batchId = crypto.randomUUID();
+  const records = selected.map(r => ({
+    ...r, import_batch_id: batchId, import_date: new Date().toISOString(),
+    vertical: vert || r.vertical, phone_normalized: normalizePhone(r.phone || ''),
+    vertical_key: verticalKey(vert || r.vertical || ''),
+    sic_code: SIC_MAP[vert || r.vertical] || null,
+    status: 'new',
+  }));
+
+  try {
+    await SB.insert('leads', records);
+    selected.forEach(r => { r.status = 'imported'; });
+    showToast(`✓ ${fmtNum(selected.length)} leads imported to database`, 'success');
+    renderStaging();
+    navigate('dashboard');
+  } catch(e) {
+    showToast('Import failed: ' + e.message, 'error');
+  }
+}
+
+function clearStaging() {
+  APP.stagingData = [];
+  renderStaging();
+  showToast('Staging area cleared.', 'success');
+}
+
+/* ================================================================
+   CLAUDE AI
+   ================================================================ */
+function initClaudePage() {
+  if (!APP.claudeSessionId) {
+    APP.claudeSessionId = crypto.randomUUID();
+    APP.claudeHistory = [];
+  }
+  loadClaudeWelcome();
+}
+
+async function loadClaudeWelcome() {
+  const welcomeEl = document.getElementById('claude-welcome');
+  if (!welcomeEl) return;
+  if (!APP.claudeKey) {
+    welcomeEl.innerHTML = `Hi ${APP.user}! To use the AI assistant, add your Claude API key in <a href="#" onclick="navigate('settings')" style="color:var(--blue)">Settings</a>.`;
+    return;
+  }
+  try {
+    let context = 'The user just opened the Ask Claude screen.';
+    if (APP.demoMode) {
+      context = `DEMO MODE. Stats: ${DEMO.stats.total} total leads, ${DEMO.stats.scrubbed} scrubbed, ${DEMO.stats.mobile} mobile confirmed, ${DEMO.stats.mobileRate} mobile rate. Top vertical: Power Washing at 29%.`;
+    } else if (APP.sbUrl && APP.sbKey) {
+      const [total, mobile] = await Promise.all([SB.count('leads'), SB.count('leads','phone_type=eq.mobile')]);
+      context = `User has ${total} total leads in database. ${mobile} confirmed mobile.`;
+    }
+    const intro = await callClaude([{
+      role: 'user',
+      content: `You are an AI assistant for Lazy Lead Finder 2.0, a lead intelligence platform for ThirdShift Technologies / QR Buddy. The user is ${APP.user} (${APP.role}). Context: ${context}. Greet them briefly and tell them what you know about their database. Keep it to 2-3 sentences.`
+    }]);
+    welcomeEl.textContent = intro;
+    APP.claudeHistory = [{ role: 'assistant', content: intro }];
+  } catch(e) {
+    welcomeEl.textContent = `Hi ${APP.user}! I'm ready to help with your leads. ${APP.demoMode ? '(Demo Mode active)' : ''}`;
+  }
+}
+
+async function sendClaudeMessage() {
+  const input = document.getElementById('claude-input');
+  const msg = input?.value?.trim();
+  if (!msg) return;
+  if (!APP.claudeKey) { showToast('Add your Claude API key in Settings.', 'warn'); return; }
+  input.value = '';
+
+  appendChatMsg('you', msg);
+  APP.claudeHistory.push({ role: 'user', content: msg });
+
+  const thinkEl = appendChatMsg('ai', '…thinking…');
+
+  try {
+    const systemPrompt = buildClaudeSystemPrompt();
+    const reply = await callClaude(APP.claudeHistory, systemPrompt);
+    thinkEl.textContent = reply;
+    APP.claudeHistory.push({ role: 'assistant', content: reply });
+    // Persist to Supabase
+    if (APP.sbUrl && APP.sbKey) {
+      await SB.insert('claude_conversations', [
+        { session_id: APP.claudeSessionId, role: 'user',      content: msg,   screen_context: APP.currentPage, demo_mode: APP.demoMode },
+        { session_id: APP.claudeSessionId, role: 'assistant', content: reply, screen_context: APP.currentPage, demo_mode: APP.demoMode },
+      ]).catch(() => {});
+    }
+  } catch(e) {
+    thinkEl.textContent = 'Sorry, I hit an error: ' + e.message;
+  }
+
+  // Scroll to bottom
+  const msgs = document.getElementById('claude-messages');
+  if (msgs) msgs.scrollTop = msgs.scrollHeight;
+}
+
+function appendChatMsg(who, text) {
+  const msgs = document.getElementById('claude-messages');
+  if (!msgs) return null;
+  const div = document.createElement('div');
+  div.className = `chat-msg ${who === 'you' ? 'user' : ''}`;
+  const bubble = document.createElement('div');
+  bubble.className = 'chat-bubble';
+  bubble.textContent = text;
+  const avatar = who === 'ai' ? starAvatar(16) : document.createElement('div');
+  if (who !== 'ai') {
+    avatar.className = 'chat-avatar you';
+    avatar.textContent = APP.user?.[0]?.toUpperCase() || 'U';
+  }
+  div.appendChild(who === 'you' ? bubble : avatar);
+  div.appendChild(who === 'you' ? avatar : bubble);
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  return bubble;
+}
+
+function newClaudeSession() {
+  APP.claudeSessionId = crypto.randomUUID();
+  APP.claudeHistory = [];
+  const msgs = document.getElementById('claude-messages');
+  if (msgs) msgs.innerHTML = '';
+  initClaudePage();
+}
+
+function buildClaudeSystemPrompt() {
+  if (APP.demoMode) {
+    return `You are an AI assistant for Lazy Lead Finder 2.0 (ThirdShift Technologies / QR Buddy). DEMO MODE is active. Use this demo data: ${JSON.stringify(DEMO.stats)} and verticals: ${JSON.stringify(DEMO.verticals)}. Give impressive, enthusiastic responses suitable for a sales presentation. Suggest actionable next steps. Keep responses concise and punchy.`;
+  }
+  return `You are an AI assistant for Lazy Lead Finder 2.0, a lead intelligence platform for ThirdShift Technologies / QR Buddy. The user is ${APP.user} (${APP.role}). You have read access to their lead database. Help them with lead strategy, campaign planning, and database questions. Be concise, direct, and actionable. You can reference database stats they share with you. Do not make up specific numbers — ask them to query the database for specifics. Keep responses under 150 words unless a detailed breakdown is explicitly requested.`;
+}
+
+async function callClaude(messages, systemPrompt = '') {
+  const body = {
+    model: 'claude-sonnet-4-6',
+    max_tokens: 1000,
+    messages,
+  };
+  if (systemPrompt) body.system = systemPrompt;
+
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'anthropic-dangerous-direct-browser-access': 'true',
+      'x-api-key': APP.claudeKey,
+      'anthropic-version': '2023-06-01',
+    },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err?.error?.message || `API error ${res.status}`);
+  }
+  const data = await res.json();
+  return data.content?.find(c => c.type === 'text')?.text || '(no response)';
+}
+
+/* Floating Claude panel */
+function toggleClaudePanel() {
+  const panel = document.getElementById('claude-panel');
+  if (!panel) return;
+  const isOpen = panel.classList.toggle('open');
+  if (isOpen) updateCpContext();
+}
+
+function updateCpContext() {
+  const el = document.getElementById('cp-context-msg');
+  if (!el) return;
+  const ctxMessages = {
+    dashboard: `You're looking at your Dashboard. What do you want to know about your leads?`,
+    import: `You're on the Import screen. Need help with column mapping or vertical assignment?`,
+    scrub: `You're setting up a scrub. Want me to recommend target numbers based on your campaign goals?`,
+    export: `You're on the Export screen. Tell me what you're looking for and I'll help.`,
+    search: `You're on Lead Finder. Tell me what you're looking for and I'll help set search parameters.`,
+    associations: `You're on Associations. Looking for a specific trade group in a particular state?`,
+    networking: `You're on Networking Groups. Want tips on which groups to target first?`,
+    staging: `You have ${APP.stagingData.filter(r=>r.status==='pending').length} records in staging. Want help deciding what to import?`,
+    claude: `You're already on the Ask Claude page! Head there for a full chat experience.`,
+    reports: `You're on Reports. Ask me about your import history, scrub usage, or association list.`,
+    settings: `You're in Settings. Need help understanding any of the API keys or options?`,
+  };
+  el.textContent = ctxMessages[APP.currentPage] || `Hi ${APP.user}! What can I help you with?`;
+}
+
+async function sendCpMessage() {
+  const input = document.getElementById('cp-input');
+  const msg = input?.value?.trim();
+  if (!msg) return;
+  if (!APP.claudeKey) { showToast('Add your Claude API key in Settings.', 'warn'); return; }
+  input.value = '';
+
+  const msgs = document.getElementById('cp-messages');
+  const userBubble = document.createElement('div');
+  userBubble.className = 'chat-msg user';
+  userBubble.innerHTML = `<div class="chat-bubble" style="font-size:13px">${esc(msg)}</div><div class="chat-avatar you" style="width:24px;height:24px;font-size:11px">${APP.user?.[0]||'U'}</div>`;
+  msgs?.appendChild(userBubble);
+
+  APP.cpHistory.push({ role: 'user', content: msg });
+
+  const thinkDiv = document.createElement('div');
+  thinkDiv.className = 'chat-msg';
+  const thinkAvatar = starAvatar(12);
+  thinkAvatar.style.cssText = 'width:26px;height:26px;flex-shrink:0';
+  const thinkBubble = document.createElement('div');
+  thinkBubble.className = 'chat-bubble';
+  thinkBubble.style.fontSize = '13px';
+  thinkBubble.textContent = '…';
+  thinkDiv.appendChild(thinkAvatar);
+  thinkDiv.appendChild(thinkBubble);
+  msgs?.appendChild(thinkDiv);
+  if (msgs) msgs.scrollTop = msgs.scrollHeight;
+
+  try {
+    const reply = await callClaude(APP.cpHistory, buildClaudeSystemPrompt() + ` Context: User is on the "${APP.currentPage}" screen.`);
+    const bubble = thinkDiv.querySelector('.chat-bubble');
+    if (bubble) bubble.textContent = reply;
+    APP.cpHistory.push({ role: 'assistant', content: reply });
+  } catch(e) {
+    const bubble = thinkDiv.querySelector('.chat-bubble');
+    if (bubble) bubble.textContent = 'Error: ' + e.message;
+  }
+  if (msgs) msgs.scrollTop = msgs.scrollHeight;
+}
+
+/* ================================================================
+   SETTINGS — API KEY TESTING
+   ================================================================ */
+async function testKey(type) {
+  const btnMap = { claude: 0, scraper: 1, numverify: 2, supabase: 4 };
+  const btns = document.querySelectorAll('.api-test-btn');
+  const btn = btns[btnMap[type] ?? 0];
+  if (btn) { btn.textContent = 'Testing…'; btn.className = 'api-test-btn'; }
+
+  try {
+    if (type === 'claude') {
+      const key = document.getElementById('key-claude')?.value;
+      if (!key) throw new Error('Enter your Claude API key first.');
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true' },
+        body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens:10, messages:[{role:'user',content:'Hi'}] }),
+      });
+      if (!res.ok) throw new Error('Invalid key or API error');
+    } else if (type === 'scraper') {
+      const key = document.getElementById('key-scraper')?.value;
+      if (!key) throw new Error('Enter your ScraperAPI key first.');
+      const res = await fetch(`https://api.scraperapi.com/account?api_key=${key}`);
+      if (!res.ok) throw new Error('Invalid ScraperAPI key');
+    } else if (type === 'numverify') {
+      const key = document.getElementById('key-numverify')?.value;
+      if (!key) throw new Error('Enter your NumVerify key first.');
+      const res = await fetch(`http://apilayer.net/api/validate?access_key=${key}&number=2485550000`);
+      if (!res.ok) throw new Error('NumVerify test failed');
+    } else if (type === 'supabase') {
+      const url = document.getElementById('key-sb-url')?.value;
+      const key = document.getElementById('key-sb-key')?.value;
+      if (!url || !key) throw new Error('Enter both Supabase URL and key.');
+      const res = await fetch(`${url}/rest/v1/leads?select=id&limit=1`, {
+        headers: { 'apikey': key, 'Authorization': `Bearer ${key}` }
+      });
+      if (!res.ok) throw new Error('Connection failed — check URL and key');
+    }
+    if (btn) { btn.textContent = '✓ Connected'; btn.className = 'api-test-btn ok'; }
+    showToast(`${type} connection successful ✓`, 'success');
+  } catch(e) {
+    if (btn) { btn.textContent = '✗ Failed'; btn.className = 'api-test-btn fail'; }
+    showToast(`${type} test failed: ${e.message}`, 'error');
+  }
+}
+
+/* ================================================================
+   REPORTS
+   ================================================================ */
+function loadReports() {
+  loadReportTab('associations');
+}
+
+async function switchReportTab(tab, el) {
+  document.querySelectorAll('.report-tab').forEach(t => t.classList.remove('active'));
+  if (el) el.classList.add('active');
+  ['associations','networking','imports','scrubs','exports'].forEach(t => {
+    const panel = document.getElementById('report-tab-' + t);
+    if (panel) panel.classList.toggle('hidden', t !== tab);
+  });
+  loadReportTab(tab);
+}
+
+async function loadReportTab(tab) {
+  if (tab === 'associations') await loadReportAssociations();
+  if (tab === 'networking')   await loadReportNetworking();
+  if (tab === 'imports')      await loadReportImports();
+  if (tab === 'scrubs')       loadScrubHistory(); // reuse
+  if (tab === 'exports')      loadReportExports();
+}
+
+async function loadReportAssociations() {
+  const wrap = document.getElementById('report-assoc-wrap');
+  if (!wrap) return;
+  if (!APP.sbUrl || !APP.sbKey) { wrap.innerHTML = `<p class="text-muted fs-13">Connect Supabase to see saved associations.</p>`; return; }
+  try {
+    const rows = await SB.select('associations', 'order=created_at.desc');
+    wrap.innerHTML = rows?.length ? `<table class="data-table"><thead><tr><th>Association</th><th>Vertical</th><th>State</th><th>Director</th><th>Phone</th><th>Members</th></tr></thead><tbody>` +
+      rows.map(r => `<tr><td class="fw-600">${esc(r.association_name||'')}</td><td>${esc(r.vertical||'')}</td><td>${esc(r.state||'')}</td><td>${esc(r.director_name||'')}</td><td>${esc(r.director_phone||'')}</td><td>${fmtNum(r.member_count)}</td></tr>`).join('') + `</tbody></table>`
+    : `<div class="empty-state" style="padding:30px"><div class="empty-icon">🏢</div><h3>No associations saved yet</h3><p>Search for associations in Lead Finder and save them here.</p></div>`;
+  } catch(e) { wrap.innerHTML = `<p class="text-muted fs-13">Load failed: ${e.message}</p>`; }
+}
+
+async function loadReportNetworking() {
+  const wrap = document.getElementById('report-net-wrap');
+  if (!wrap) return;
+  if (!APP.sbUrl || !APP.sbKey) { wrap.innerHTML = `<p class="text-muted fs-13">Connect Supabase to see saved networking groups.</p>`; return; }
+  try {
+    const rows = await SB.select('networking_groups', 'order=created_at.desc');
+    wrap.innerHTML = rows?.length ? `<table class="data-table"><thead><tr><th>Group</th><th>Type</th><th>State</th><th>County</th><th>Contact</th><th>Phone</th></tr></thead><tbody>` +
+      rows.map(r => `<tr><td class="fw-600">${esc(r.group_name||'')}</td><td>${esc(r.group_type||'')}</td><td>${esc(r.state||'')}</td><td>${esc(r.county||'')}</td><td>${esc(r.contact_name||'')}</td><td>${esc(r.contact_phone||'')}</td></tr>`).join('') + `</tbody></table>`
+    : `<div class="empty-state" style="padding:30px"><div class="empty-icon">🤝</div><h3>No networking groups saved yet</h3></div>`;
+  } catch(e) { wrap.innerHTML = `<p class="text-muted fs-13">Load failed: ${e.message}</p>`; }
+}
+
+async function loadReportImports() {
+  const wrap = document.getElementById('report-imports-wrap');
+  if (!wrap) return;
+  if (!APP.sbUrl || !APP.sbKey) { wrap.innerHTML = `<p class="text-muted fs-13">Connect Supabase to see import history.</p>`; return; }
+  try {
+    const rows = await SB.select('import_batches', 'order=created_at.desc&limit=20');
+    wrap.innerHTML = rows?.length ? `<table class="data-table"><thead><tr><th>Date</th><th>File</th><th>Source</th><th>Vertical</th><th>Imported</th><th>Skipped</th></tr></thead><tbody>` +
+      rows.map(r => `<tr><td class="muted">${fmtDate(r.created_at)}</td><td>${esc(r.filename||'')}</td><td>${esc(r.source_tag||'')}</td><td>${esc(r.vertical||'')}</td><td class="text-success">${fmtNum(r.imported_records)}</td><td class="text-muted">${fmtNum(r.skipped_duplicates)}</td></tr>`).join('') + `</tbody></table>`
+    : `<div class="empty-state" style="padding:30px"><h3>No imports yet</h3></div>`;
+  } catch(e) { wrap.innerHTML = `<p class="text-muted fs-13">Load failed: ${e.message}</p>`; }
+}
+
+async function loadReportExports() {
+  const wrap = document.getElementById('report-exports-wrap');
+  if (wrap) wrap.innerHTML = `<div class="empty-state" style="padding:30px"><div class="empty-icon">📤</div><h3>No export logs yet</h3><p>Export logs will appear here after your first download.</p></div>`;
+}
+
+/* ================================================================
+   SYSTEM INFO IN SETTINGS
+   ================================================================ */
+async function loadSystemInfo() {
+  if (!APP.sbUrl || !APP.sbKey) return;
+  try {
+    const total = await SB.count('leads');
+    setTxt('sys-total', fmtNum(total));
+    const batches = await SB.select('import_batches', 'order=created_at.desc&limit=1');
+    if (batches?.[0]) setTxt('sys-last-import', fmtDate(batches[0].created_at));
+    const scrubs = await SB.select('scrub_sessions', 'order=created_at.desc&limit=1');
+    if (scrubs?.[0]) setTxt('sys-last-scrub', fmtDate(scrubs[0].created_at));
+  } catch(e) { /* silent */ }
+}
+
+function exportAllData() { showToast('Full export feature coming in next build step.', 'warn'); }
+function clearStagingFromSettings() { APP.stagingData = []; updateStagingBadge(); showToast('Staging area cleared.', 'success'); }
+function addUser() { showToast('User management coming in Step 5 (Auth).', 'warn'); }
+
+/* ================================================================
+   TOAST SYSTEM
+   ================================================================ */
+function showToast(msg, type = 'success') {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+  const icons = { success: '✓', error: '✗', warn: '⚠️' };
+  const el = document.createElement('div');
+  el.className = `toast ${type === 'error' ? 'error' : type === 'warn' ? 'warn' : 'success'}`;
+  el.innerHTML = `<span>${icons[type] || '•'}</span><span>${esc(msg)}</span>`;
+  container.appendChild(el);
+  setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity 0.3s'; setTimeout(() => el.remove(), 300); }, 3500);
+}
+
+/* ================================================================
+   UTILITIES
+   ================================================================ */
+function setTxt(id, val) { const el = document.getElementById(id); if (el) el.textContent = val ?? '—'; }
+function setVal(id, val) { const el = document.getElementById(id); if (el) el.value = val ?? ''; }
+function esc(s) { return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function fmtNum(n) { if (n == null || n === '' || n === '—') return '—'; return Number(n).toLocaleString(); }
+function fmtDate(d) { if (!d) return '—'; try { return new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'}); } catch(e) { return d; } }
+function normalizePhone(p) { return String(p || '').replace(/\D/g,''); }
+function verticalKey(v) { return v.toLowerCase().replace(/[^a-z0-9]/g,'-').replace(/-+/g,'-'); }
+function extractPhone(text) { const m = text.match(/\(?\d{3}\)?[-.\s]\d{3}[-.\s]\d{4}/); return m ? m[0] : ''; }
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+function csvEsc(v) { if (v == null) return ''; const s = String(v); return s.includes(',') || s.includes('"') || s.includes('\n') ? `"${s.replace(/"/g,'""')}"` : s; }
+function downloadCSV(csv, filename) {
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+/* ================================================================
+   APP INIT
+   ================================================================ */
+function initApp() {
+  loadSettings();
+  loadReps();
+  populateVerticalSelects();
+  populateStateDropdowns();
+  injectStars();
+  navigate('dashboard');
+  loadSystemInfo();
+  updateStagingBadge();
+}
+
+// Boot
+window.addEventListener('load', () => {
+  loadSettings();
+  // Auto-login if settings exist (placeholder for real auth in Step 5)
+  const savedUser = sessionStorage.getItem('llf2_user');
+  if (savedUser) {
+    try { const u = JSON.parse(savedUser); doLogin(u.name, u.role); }
+    catch(e) { /* show login */ }
+  }
+});
+
+/* ================================================================
+   AI STAR ICON — SVG injected everywhere robot emoji was
+   Gradient: cyan #0ea5e9 left → purple #8b5cf6 right
+   ================================================================ */
+const STAR_SVG = (size = 20, id = '') => `<svg width="${size}" height="${size}" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" ${id ? `id="${id}"` : ''}>
+  <defs>
+    <linearGradient id="sg${size}" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#e0f2fe" stop-opacity="0.85"/>
+    </linearGradient>
+  </defs>
+  <path d="M50 2 C50 2 54 38 62 50 C70 62 98 50 98 50 C98 50 70 38 62 50 C54 62 50 98 50 98 C50 98 46 62 38 50 C30 38 2 50 2 50 C2 50 30 62 38 50 C46 38 50 2 50 2Z" fill="url(#sg${size})"/>
+</svg>`;
+
+function injectStars() {
+  // FAB button
+  const fab = document.getElementById('fab-star');
+  if (fab) fab.innerHTML = STAR_SVG(24);
+
+  // Sidebar nav
+  const navStar = document.getElementById('nav-star-claude');
+  if (navStar) navStar.innerHTML = STAR_SVG(17);
+
+  // Claude page header
+  const pageH = document.getElementById('claude-page-star');
+  if (pageH) pageH.innerHTML = STAR_SVG(28);
+
+  // Claude panel header
+  const cpH = document.getElementById('cp-header-star');
+  if (cpH) cpH.innerHTML = STAR_SVG(16);
+
+  // Welcome avatar in full chat
+  const wa = document.getElementById('claude-welcome-avatar');
+  if (wa) wa.innerHTML = STAR_SVG(18);
+
+  // Claude panel first message avatar
+  const cpa = document.getElementById('cp-first-avatar');
+  if (cpa) cpa.innerHTML = STAR_SVG(14);
+
+  // Mobile nav
+  const mn = document.getElementById('mobile-nav-star');
+  if (mn) mn.innerHTML = STAR_SVG(22);
+}
+
+// Helper: create star avatar element for chat messages
+function starAvatar(size = 18) {
+  const d = document.createElement('div');
+  d.className = 'chat-avatar ai';
+  d.style.cssText = `width:${size+14}px;height:${size+14}px;`;
+  d.innerHTML = STAR_SVG(size);
+  return d;
+}
+
+/* ================================================================
+   SEARCH — SOFT WARNING FOR LARGE TARGETS
+   ================================================================ */
+function warnLargeSearch(input) {
+  const warn = document.getElementById('search-target-warn');
+  if (!warn) return;
+  const v = parseInt(input.value) || 0;
+  warn.classList.toggle('hidden', v <= 1000);
+}
+
+/* ================================================================
+   DASHBOARD DRILL-DOWN
+   ================================================================ */
+let drillData      = [];   // full dataset loaded from DB
+let drillFiltered  = [];   // after search/filter
+let drillMode      = '';   // 'all' | 'scrubbed' | 'mobile'
+let drillSortCol   = 'business_name';
+let drillSortAsc   = true;
+
+async function openDrillDown(mode, verticalFilter) {
+  drillMode = mode;
+
+  // Mark active stat card
+  document.querySelectorAll('.stat-block').forEach(b => b.classList.remove('active'));
+
+  const panel = document.getElementById('lead-drilldown');
+  if (!panel) return;
+  panel.classList.add('open');
+
+  // Scroll to it
+  panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  // Set title
+  const titles = {
+    all:      'All Leads',
+    scrubbed: 'Scrubbed Leads',
+    mobile:   'Mobile Confirmed Leads 🟢',
+  };
+  const vertLabel = verticalFilter ? ` — ${verticalFilter}` : '';
+  setTxt('drill-title', (titles[mode] || 'Leads') + vertLabel);
+
+  // Populate state filter
+  const dsf = document.getElementById('drill-filter-state');
+  if (dsf && dsf.options.length < 3) {
+    dsf.innerHTML = '<option value="">All States</option>' +
+      ALL_STATES.map(s => `<option value="${s}">${s}</option>`).join('');
+  }
+
+  // Populate vertical filter
+  const dvf = document.getElementById('drill-filter-vertical');
+  if (dvf && dvf.options.length < 3) {
+    dvf.innerHTML = '<option value="">All Verticals</option>' +
+      VERTICALS.map(v => `<option value="${v}">${esc(v)}</option>`).join('');
+  }
+  if (dvf && verticalFilter) dvf.value = verticalFilter;
+
+  // Clear search
+  const ds = document.getElementById('drill-search');
+  if (ds) ds.value = '';
+
+  // Load data
+  const wrap = document.getElementById('drill-table-wrap');
+  wrap.innerHTML = '<div class="loading-center"><div class="spinner"></div><span>Loading records…</span></div>';
+  setTxt('drill-count', '—');
+
+  try {
+    if (APP.demoMode) {
+      drillData = generateDemoLeads(mode, verticalFilter);
+    } else {
+      if (!APP.sbUrl || !APP.sbKey) {
+        wrap.innerHTML = `<p class="text-muted fs-13" style="padding:20px">Configure Supabase in Settings to view leads.</p>`;
+        return;
+      }
+      let q = 'select=id,business_name,contact_name,phone,phone_type,city,state,vertical,email,source,created_at&limit=2000&order=created_at.desc';
+      if (mode === 'scrubbed') q += '&phone_verified=eq.true';
+      if (mode === 'mobile')   q += '&phone_type=eq.mobile';
+      if (verticalFilter)      q += `&vertical=eq.${encodeURIComponent(verticalFilter)}`;
+      drillData = await SB.select('leads', q);
+    }
+    drillFiltered = [...drillData];
+    renderDrillTable();
+  } catch(e) {
+    wrap.innerHTML = `<p class="text-muted fs-13" style="padding:20px">Load failed: ${e.message}</p>`;
+  }
+}
+
+function closeDrillDown() {
+  const panel = document.getElementById('lead-drilldown');
+  if (panel) panel.classList.remove('open');
+  document.querySelectorAll('.stat-block').forEach(b => b.classList.remove('active'));
+  drillData = []; drillFiltered = [];
+}
+
+function filterDrillTable() {
+  const search  = document.getElementById('drill-search')?.value?.toLowerCase() || '';
+  const state   = document.getElementById('drill-filter-state')?.value   || '';
+  const vertical = document.getElementById('drill-filter-vertical')?.value || '';
+
+  drillFiltered = drillData.filter(r => {
+    if (state    && r.state    !== state)    return false;
+    if (vertical && r.vertical !== vertical) return false;
+    if (search) {
+      const hay = [r.business_name, r.contact_name, r.phone, r.city, r.state, r.vertical, r.email]
+        .join(' ').toLowerCase();
+      if (!hay.includes(search)) return false;
+    }
+    return true;
+  });
+  renderDrillTable();
+}
+
+function sortDrill(col) {
+  if (drillSortCol === col) drillSortAsc = !drillSortAsc;
+  else { drillSortCol = col; drillSortAsc = true; }
+  drillFiltered.sort((a, b) => {
+    const av = (a[col] || '').toString().toLowerCase();
+    const bv = (b[col] || '').toString().toLowerCase();
+    return drillSortAsc ? av.localeCompare(bv) : bv.localeCompare(av);
+  });
+  renderDrillTable();
+}
+
+function renderDrillTable() {
+  const wrap = document.getElementById('drill-table-wrap');
+  const count = drillFiltered.length;
+  setTxt('drill-count', `${fmtNum(count)} record${count !== 1 ? 's' : ''}`);
+  setTxt('drill-footer-count', `Showing ${fmtNum(count)} records`);
+
+  if (!count) {
+    wrap.innerHTML = `<div class="empty-state" style="padding:40px"><div class="empty-icon">🔍</div><h3>No records match</h3><p>Try adjusting your search or filters above.</p></div>`;
+    return;
+  }
+
+  const cols = [
+    { key:'business_name', label:'Business Name' },
+    { key:'contact_name',  label:'Contact' },
+    { key:'phone',         label:'Phone' },
+    { key:'phone_type',    label:'Status' },
+    { key:'city',          label:'City' },
+    { key:'state',         label:'State' },
+    { key:'vertical',      label:'Vertical' },
+    { key:'email',         label:'Email' },
+  ];
+
+  const arrow = (col) => `<span class="sort-arrow">${drillSortCol === col ? (drillSortAsc ? '↑' : '↓') : '↕'}</span>`;
+  const sorted = (col) => drillSortCol === col ? 'sorted' : '';
+
+  let html = `<table class="drill-table">
+    <thead><tr>
+      ${cols.map(c => `<th class="${sorted(c.key)}" onclick="sortDrill('${c.key}')">${c.label} ${arrow(c.key)}</th>`).join('')}
+    </tr></thead><tbody>`;
+
+  const phoneBadge = (type) => {
+    if (!type) return '<span class="badge badge-gray">—</span>';
+    if (type === 'mobile')   return '<span class="badge badge-mobile">Mobile 🟢</span>';
+    if (type === 'landline') return '<span class="badge badge-land">Landline 🔴</span>';
+    if (type === 'voip')     return '<span class="badge badge-warn">VoIP 🟡</span>';
+    return '<span class="badge badge-gray">Unknown</span>';
+  };
+
+  html += drillFiltered.map(r => `<tr>
+    <td class="fw-600">${esc(r.business_name || '—')}</td>
+    <td>${esc(r.contact_name || '—')}</td>
+    <td style="font-family:monospace;font-size:12px">${esc(r.phone || '—')}</td>
+    <td>${phoneBadge(r.phone_type)}</td>
+    <td>${esc(r.city || '—')}</td>
+    <td>${esc(r.state || '—')}</td>
+    <td class="text-2">${esc(r.vertical || '—')}</td>
+    <td class="text-muted" style="font-size:12px">${esc(r.email || '—')}</td>
+  </tr>`).join('');
+
+  html += '</tbody></table>';
+  wrap.innerHTML = html;
+}
+
+function generateDemoLeads(mode, vertFilter) {
+  const firstNames = ['Brian','Mike','Sarah','Jay','Chris','Lisa','Tom','Karen','Dave','Amy','James','Maria','Paul','Susan'];
+  const lastNames  = ['Williams','Johnson','Thompson','Okafor','Jenkins','Sullivan','Brown','Davis','Martinez','Kim'];
+  const bizSuffixes = ['Pro','Plus','LLC','Services','Solutions','Co','Group','Experts'];
+  const states = ['Michigan','Texas','Florida','Ohio','California'];
+  const verts  = VERTICALS.slice(0, 8);
+  const types  = mode === 'mobile' ? ['mobile'] : mode === 'scrubbed' ? ['mobile','landline','voip'] : [null,'mobile','landline','voip',null];
+  const count  = mode === 'all' ? 50 : mode === 'mobile' ? 30 : 40;
+  return Array.from({length: count}, (_, i) => {
+    const fn  = firstNames[i % firstNames.length];
+    const ln  = lastNames[i % lastNames.length];
+    const sfx = bizSuffixes[i % bizSuffixes.length];
+    const st  = states[i % states.length];
+    const ac  = getAreaCodesForState(st)[0];
+    const v   = vertFilter || verts[i % verts.length];
+    const t   = types[i % types.length];
+    return {
+      id: crypto.randomUUID(),
+      business_name: `${fn}'s ${v} ${sfx}`,
+      contact_name: `${fn} ${ln}`,
+      phone: `${ac}-555-${String(1000 + i).substring(1)}`,
+      phone_type: t,
+      city: ['Troy','Austin','Orlando','Columbus','Fresno'][i % 5],
+      state: st, vertical: v,
+      email: `${fn.toLowerCase()}@${ln.toLowerCase()}.com`,
+    };
+  });
+}
+
+function exportDrillDown() {
+  if (!drillFiltered.length) { showToast('No records to export.', 'warn'); return; }
+  const fields = ['business_name','contact_name','phone','phone_type','city','state','vertical','email'];
+  const csv = fields.join(',') + '\n' +
+    drillFiltered.map(r => fields.map(f => csvEsc(r[f])).join(',')).join('\n');
+  const label = drillMode === 'mobile' ? 'mobile-leads' : drillMode === 'scrubbed' ? 'scrubbed-leads' : 'all-leads';
+  downloadCSV(csv, `${label}-${new Date().toISOString().slice(0,10)}.csv`);
+  showToast(`✓ Exported ${fmtNum(drillFiltered.length)} records`, 'success');
+}
+
+/* ================================================================
+   AUDIT SELF-CHECK (runs once on load, console only)
+   ================================================================ */
+(function auditCheck() {
+  const checks = [
+    ['navigate', typeof navigate === 'function'],
+    ['SB.select', typeof SB?.select === 'function'],
+    ['SB.insert', typeof SB?.insert === 'function'],
+    ['callClaude', typeof callClaude === 'function'],
+    ['showToast', typeof showToast === 'function'],
+    ['parseCSV', typeof parseCSV === 'function'],
+    ['normalizePhone', typeof normalizePhone === 'function'],
+    ['downloadCSV', typeof downloadCSV === 'function'],
+    ['VERTICALS array', Array.isArray(VERTICALS) && VERTICALS.length > 0],
+    ['SIC_MAP', typeof SIC_MAP === 'object'],
+    ['APP state', typeof APP === 'object'],
+    ['DEMO data', typeof DEMO === 'object'],
+  ];
+  const pass = checks.filter(([,ok]) => ok).length;
+  const fail = checks.filter(([,ok]) => !ok);
+  console.log(`%c[LLF2 Audit] ${pass}/${checks.length} checks passed`, pass === checks.length ? 'color:#22c55e;font-weight:bold' : 'color:#ef4444;font-weight:bold');
+  if (fail.length) fail.forEach(([name]) => console.warn(`  ✗ FAILED: ${name}`));
+})();
+</script>
+
+</body>
+</html>
